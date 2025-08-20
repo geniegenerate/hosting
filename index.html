@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GenieGenerate Hosting</title>
+    <title>GenieGenerate</title>
     <style>
         * {
             margin: 0;
@@ -135,10 +135,80 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Verification page styles */
+        .verification-container {
+            display: none;
+        }
+
+        .verification-container.active {
+            display: block;
+        }
+
+        .status-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .status-icon.loading {
+            animation: pulse 1.5s ease-in-out infinite alternate;
+        }
+
+        .status-icon.success {
+            color: #28a745;
+        }
+
+        .status-icon.error {
+            color: #dc3545;
+        }
+
+        @keyframes pulse {
+            from { opacity: 1; }
+            to { opacity: 0.5; }
+        }
+
+        .status-message {
+            color: #333;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .status-detail {
+            color: #666;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .action-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #F6921A 0%, #0FA4A4 100%);
+            color: white;
+            text-decoration: none;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            margin: 0.5rem;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 8px 16px rgba(246, 146, 26, 0.3);
+        }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(246, 146, 26, 0.4);
+        }
+
+        .countdown {
+            font-weight: bold;
+            color: #F6921A;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- Home Page -->
+    <div class="container" id="home-page">
         <div class="logo">🧞‍♂️</div>
         <h1>GenieGenerate</h1>
         <p class="subtitle">Premium hosting solutions that bring your digital dreams to life</p>
@@ -167,5 +237,170 @@
             <p>&copy; 2024 GenieGenerate. Making hosting magical since today.</p>
         </div>
     </div>
+
+    <!-- Email Verification Page -->
+    <div class="container verification-container" id="verification-page">
+        <div class="logo">🧞‍♂️</div>
+        <h1>Email Verification</h1>
+        
+        <div id="verification-content">
+            <div class="status-icon loading" id="status-icon">⏳</div>
+            <p class="status-message" id="status-message">Processing your verification...</p>
+            <p class="status-detail" id="status-detail">Please wait while we verify your email address.</p>
+            <div id="actions"></div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const MOBILE_DEEP_LINK_SCHEME = 'com.geniegenerate.mobile';
+        
+        // Deep link route mappings - easily extensible for future routes
+        const DEEP_LINK_ROUTES = {
+            'verify-email': {
+                path: 'verify-email',
+                requiredParams: ['token'],
+                optionalParams: ['email'],
+                message: 'Redirecting to verify your email...',
+                icon: '📧'
+            },
+            'reset-password': {
+                path: 'reset-password', 
+                requiredParams: ['token'],
+                optionalParams: ['email'],
+                message: 'Redirecting to reset your password...',
+                icon: '🔐'
+            },
+            'profile': {
+                path: 'profile',
+                requiredParams: ['userId'],
+                optionalParams: ['tab'],
+                message: 'Opening your profile...',
+                icon: '👤'
+            },
+            'notification': {
+                path: 'notification',
+                requiredParams: ['notificationId'],
+                optionalParams: ['userId'],
+                message: 'Opening notification...',
+                icon: '🔔'
+            }
+            // Add more routes here as needed
+        };
+
+        // Get URL parameters
+        function getUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const params = {};
+            for (let [key, value] of urlParams) {
+                params[key] = value;
+            }
+            return {
+                ...params,
+                path: window.location.pathname.replace(/^\/+|\/+$/g, '') // Remove leading/trailing slashes
+            };
+        }
+
+        // Update verification UI
+        function updateVerificationUI(icon, message) {
+            document.getElementById('status-icon').innerHTML = icon;
+            document.getElementById('status-message').textContent = message;
+            document.getElementById('status-detail').textContent = '';
+        }
+
+        // Build deep link URL from route config and parameters
+        function buildDeepLink(routeConfig, params) {
+            let deepLink = `${MOBILE_DEEP_LINK_SCHEME}://${routeConfig.path}`;
+            const queryParams = [];
+            
+            // Add required parameters
+            routeConfig.requiredParams.forEach(paramName => {
+                if (params[paramName]) {
+                    queryParams.push(`${paramName}=${encodeURIComponent(params[paramName])}`);
+                }
+            });
+            
+            // Add optional parameters if they exist
+            routeConfig.optionalParams.forEach(paramName => {
+                if (params[paramName]) {
+                    queryParams.push(`${paramName}=${encodeURIComponent(params[paramName])}`);
+                }
+            });
+            
+            if (queryParams.length > 0) {
+                deepLink += '?' + queryParams.join('&');
+            }
+            
+            return deepLink;
+        }
+
+        // Auto-redirect to mobile app based on route
+        function autoRedirectToMobileApp(routeKey, params) {
+            const routeConfig = DEEP_LINK_ROUTES[routeKey];
+            
+            if (!routeConfig) {
+                console.error(`Unknown route: ${routeKey}`);
+                return;
+            }
+            
+            // Check if required parameters are present
+            const missingParams = routeConfig.requiredParams.filter(param => !params[param]);
+            if (missingParams.length > 0) {
+                console.error(`Missing required parameters: ${missingParams.join(', ')}`);
+                updateVerificationUI('❌', 'Invalid link - missing required information');
+                return;
+            }
+            
+            const deepLink = buildDeepLink(routeConfig, params);
+            
+            updateVerificationUI(routeConfig.icon, routeConfig.message);
+            
+            // Immediately redirect to mobile app
+            window.location.href = deepLink;
+        }
+
+        // Determine route from URL path or parameters
+        function detectRoute(params) {
+            // Priority 1: Check URL path
+            if (params.path) {
+                // Handle paths like /verify-email, verify-email, etc.
+                const cleanPath = params.path.toLowerCase();
+                for (let [routeKey, config] of Object.entries(DEEP_LINK_ROUTES)) {
+                    if (cleanPath === config.path || cleanPath.endsWith(config.path)) {
+                        return routeKey;
+                    }
+                }
+            }
+            
+            // Priority 2: Infer from parameters
+            if (params.token && params.email !== undefined) return 'verify-email';
+            if (params.token && !params.email) return 'reset-password';
+            if (params.userId) return 'profile';
+            if (params.notificationId) return 'notification';
+            
+            return null;
+        }
+
+        // Main routing logic
+        function initializeApp() {
+            const params = getUrlParams();
+            const routeKey = detectRoute(params);
+            
+            if (routeKey) {
+                // Show verification page and auto-redirect
+                document.getElementById('home-page').style.display = 'none';
+                document.getElementById('verification-page').classList.add('active');
+                
+                autoRedirectToMobileApp(routeKey, params);
+            } else {
+                // Show home page for regular visits
+                document.getElementById('home-page').style.display = 'block';
+                document.getElementById('verification-page').classList.remove('active');
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    </script>
 </body>
 </html>
