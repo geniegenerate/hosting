@@ -5,7 +5,8 @@
             {
                 "appID": "TEAM_ID.com.geniegenerate.mobile",
                 "paths": [
-                    "/app/*"
+                    "/app/*",
+                    "/verify-email*"
                 ]
             }
         ]
