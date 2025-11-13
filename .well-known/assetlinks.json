@@ -5,7 +5,31 @@
         ],
         "target": {
             "namespace": "android_app",
-            "package_name": "com.geniegenerate.mobile",
+            "package_name": "com.geniegenerate.app.dev",
+            "sha256_cert_fingerprints": [
+                "BF:BC:60:46:BB:F3:A4:51:BB:79:01:D0:88:FD:66:3C:73:7A:5F:9A:6F:53:3B:40:F2:4B:C8:6D:B5:44:6B:E1"
+            ]
+        }
+    },
+    {
+        "relation": [
+            "delegate_permission/common.handle_all_urls"
+        ],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "com.geniegenerate.app.staging",
+            "sha256_cert_fingerprints": [
+                "BF:BC:60:46:BB:F3:A4:51:BB:79:01:D0:88:FD:66:3C:73:7A:5F:9A:6F:53:3B:40:F2:4B:C8:6D:B5:44:6B:E1"
+            ]
+        }
+    },
+    {
+        "relation": [
+            "delegate_permission/common.handle_all_urls"
+        ],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "com.geniegenerate.app",
             "sha256_cert_fingerprints": [
                 "EF:91:9B:61:86:6C:C1:5A:45:8E:9B:85:73:38:A9:C5:76:8A:83:6D:32:8B:8C:1F:E8:AE:06:B8:0C:01:44:66"
             ]
