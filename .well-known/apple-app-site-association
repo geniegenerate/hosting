@@ -10,5 +10,10 @@
                 ]
             }
         ]
+    },
+    "webcredentials": {
+        "apps": [
+            "TEAM_ID.com.geniegenerate.mobile"
+        ]
     }
 }
