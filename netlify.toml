@@ -1,0 +1,15 @@
+# Netlify deploy config for the .well-known/ host.
+#
+# This repo's primary purpose is serving Apple AASA + Google assetlinks
+# at link./staginglink./devlink.geniegenerate.com. The marketing site at
+# www.geniegenerate.com lives on Google Sites and is unrelated.
+#
+# After connecting this repo to a Netlify project, set the three custom
+# domains (link./staginglink./devlink.) to point at the same project.
+# DNS is GoDaddy; add CNAME records pointing each subdomain to the
+# Netlify project's apex (e.g. <project>.netlify.app).
+
+[build]
+  # No build step — this is a pure static site.
+  command = ""
+  publish = "."

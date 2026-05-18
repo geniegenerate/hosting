@@ -3,17 +3,36 @@
         "apps": [],
         "details": [
             {
-                "appID": "TEAM_ID.com.geniegenerate.mobile",
+                "appID": "<TEAM_ID>.com.geniegenerate.app",
                 "paths": [
-                    "/app/*",
-                    "/verify-email*"
+                    "/verify-email*",
+                    "/reset-password*",
+                    "/login*"
+                ]
+            },
+            {
+                "appID": "<TEAM_ID>.com.geniegenerate.app.staging",
+                "paths": [
+                    "/verify-email*",
+                    "/reset-password*",
+                    "/login*"
+                ]
+            },
+            {
+                "appID": "<TEAM_ID>.com.geniegenerate.app.dev",
+                "paths": [
+                    "/verify-email*",
+                    "/reset-password*",
+                    "/login*"
                 ]
             }
         ]
     },
     "webcredentials": {
         "apps": [
-            "TEAM_ID.com.geniegenerate.mobile"
+            "<TEAM_ID>.com.geniegenerate.app",
+            "<TEAM_ID>.com.geniegenerate.app.staging",
+            "<TEAM_ID>.com.geniegenerate.app.dev"
         ]
     }
 }
