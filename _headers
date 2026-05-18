@@ -1,0 +1,12 @@
+# Apple and Google fetch the well-known files with strict expectations.
+# Google's assetlinks verifier requires Content-Type: application/json.
+# Apple's AASA verifier accepts application/json (and tolerates octet-stream
+# in unsigned mode); application/json is the safe default.
+
+/.well-known/apple-app-site-association
+  Content-Type: application/json
+  Cache-Control: public, max-age=300
+
+/.well-known/assetlinks.json
+  Content-Type: application/json
+  Cache-Control: public, max-age=300
