@@ -1,1 +1,9 @@
-/*    /index.html   200
+# Cloudflare Pages excludes dotfiles/dotdirs at build, so the AASA and
+# assetlinks files are stored at repo root and exposed at their canonical
+# /.well-known/ URLs via rewrite (status 200, not 301 — Apple/Google fetch
+# the path verbatim and won't follow redirects).
+/.well-known/apple-app-site-association   /apple-app-site-association   200
+/.well-known/assetlinks.json              /assetlinks.json              200
+
+# SPA fallback — keep last so the rules above match first.
+/*                                        /index.html                   200
