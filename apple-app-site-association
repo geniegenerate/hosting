@@ -3,7 +3,7 @@
         "apps": [],
         "details": [
             {
-                "appID": "<TEAM_ID>.com.geniegenerate.app",
+                "appID": "RQ4GFMSFAQ.com.geniegenerate.app",
                 "paths": [
                     "/verify-email*",
                     "/reset-password*",
@@ -11,7 +11,7 @@
                 ]
             },
             {
-                "appID": "<TEAM_ID>.com.geniegenerate.app.staging",
+                "appID": "RQ4GFMSFAQ.com.geniegenerate.app.staging",
                 "paths": [
                     "/verify-email*",
                     "/reset-password*",
@@ -19,7 +19,7 @@
                 ]
             },
             {
-                "appID": "<TEAM_ID>.com.geniegenerate.app.dev",
+                "appID": "RQ4GFMSFAQ.com.geniegenerate.app.dev",
                 "paths": [
                     "/verify-email*",
                     "/reset-password*",
@@ -30,9 +30,9 @@
     },
     "webcredentials": {
         "apps": [
-            "<TEAM_ID>.com.geniegenerate.app",
-            "<TEAM_ID>.com.geniegenerate.app.staging",
-            "<TEAM_ID>.com.geniegenerate.app.dev"
+            "RQ4GFMSFAQ.com.geniegenerate.app",
+            "RQ4GFMSFAQ.com.geniegenerate.app.staging",
+            "RQ4GFMSFAQ.com.geniegenerate.app.dev"
         ]
     }
 }
