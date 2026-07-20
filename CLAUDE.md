@@ -7,11 +7,11 @@ Host for the GenieGenerate Apple AASA + Google assetlinks deep-link verification
 | Surface | What's serving it | Source |
 |---|---|---|
 | `https://www.geniegenerate.com/` | **Google Sites** (CNAME → `ghs.googlehosted.com`) | Not in any repo. Edit via Google Sites UI. |
-| `https://devlink.geniegenerate.com/` | Netlify project `stellar-pika-3ff766.netlify.app` | **Auto-deploys from this repo on push** (verified 2026-07-17: a push landed live on the Netlify origin AND Apple's CDN within seconds). The connection is NOT drifted. |
-| `https://link.geniegenerate.com/` (prod) | **Nothing — DNS doesn't resolve** | To be set up. |
-| `https://staginglink.geniegenerate.com/` | **Nothing — DNS doesn't resolve** | To be set up. |
+| `https://devlink.geniegenerate.com/` | **Cloudflare Pages** project `geniegenerate-wellknown` (since 2026-07-20) | **Auto-deploys from this repo on push.** |
+| `https://link.geniegenerate.com/` (prod) | **Cloudflare Pages** `geniegenerate-wellknown` (live since 2026-07-20) | Same project — prod AASA is live and verified through Apple's CDN. |
+| `https://staginglink.geniegenerate.com/` | **Cloudflare Pages** `geniegenerate-wellknown` (live since 2026-07-20) | Same project. |
 
-The `_redirects` syntax in this repo and the presence of `netlify.toml` mean the deploy target is **Netlify**. Cloudflare Pages is NOT in use here; my earlier claim was wrong.
+**Deploy targets — parallel run until ~2026-07-27:** Cloudflare Pages (`geniegenerate-wellknown`) is what all three subdomains serve; the Netlify project `stellar-pika-3ff766` remains attached to this repo as the rollback net (re-point a CNAME back to `stellar-pika-3ff766.netlify.app` to roll back) and is retired after a quiet week. Both auto-deploy on push; `_headers`/`_redirects` are honored identically by both. Retirement checklist: `company/operations/deployment/runbooks/CLOUDFLARE_PAGES.md`.
 
 ## What this repo serves (and only this)
 
@@ -39,9 +39,12 @@ Historical prerequisites, now all satisfied:
    ignores it in `Info.plist`.
 3. ✅ Team ID substituted into `apple-app-site-association` (this repo).
 
-**Still open (prod only):** `link.` and `staginglink.geniegenerate.com` DNS do
-not resolve yet, so their AASA can't be fetched — passkeys/Universal Links only
-verify on `devlink.` today. See go-live steps 5–8 for the prod cutover.
+**Prod DNS live (2026-07-20):** `link.` and `staginglink.geniegenerate.com` now
+resolve (Cloudflare Pages custom domains) and Apple's CDN serves their AASA with
+the real Team ID — verified `200 RQ4GFMSFAQ.com.geniegenerate.app` for all three
+subdomains. Go-live steps 4–6 below are **superseded** by the Pages setup; step 7
+(verify battery) and step 8 (end-to-end Universal Link test on prod `link.`)
+remain the done-gate for any future change.
 
 ⚠️ The strict-validator caution still applies to any FUTURE edit: a wrong Team ID
 is worse than a placeholder (Apple caches negative results aggressively). The
@@ -64,7 +67,7 @@ git diff apple-app-site-association                               # 6 occurrence
 ```
 **Validate JSON before commit**: `jq . apple-app-site-association`. Confirm live where iOS actually reads it: `curl -s https://app-site-association.cdn-apple.com/a/v1/devlink.geniegenerate.com | jq .`.
 
-### 4. Connect this repo to a Netlify project (user action)
+### 4. Connect this repo to a Netlify project (user action) — ⚠️ SUPERSEDED 2026-07-20 by Cloudflare Pages (`geniegenerate-wellknown`); steps 4–6 kept for history only
 Likely the existing `stellar-pika-3ff766.netlify.app` project (the one `devlink.` already points to) — confirm in Netlify dashboard whether it's still attached to this repo. If yes, just push and it deploys. If the link has drifted: in Netlify UI → Site settings → Build & deploy → Continuous Deployment → reconnect to `github.com/geniegenerate/hosting` branch `main`.
 
 ### 5. Add the two missing custom domains in Netlify (user action)
