@@ -7,7 +7,9 @@
                 "paths": [
                     "/verify-email*",
                     "/reset-password*",
-                    "/login*"
+                    "/login*",
+                    "/shop/*",
+                    "/v/*"
                 ]
             },
             {
@@ -15,7 +17,9 @@
                 "paths": [
                     "/verify-email*",
                     "/reset-password*",
-                    "/login*"
+                    "/login*",
+                    "/shop/*",
+                    "/v/*"
                 ]
             },
             {
@@ -23,7 +27,9 @@
                 "paths": [
                     "/verify-email*",
                     "/reset-password*",
-                    "/login*"
+                    "/login*",
+                    "/shop/*",
+                    "/v/*"
                 ]
             }
         ]
