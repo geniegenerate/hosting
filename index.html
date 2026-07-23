@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="GenieGenerate — ชุมชนร้านค้าและกระเป๋าเงินดิจิทัลของคุณ. Your shops &amp; digital wallet community.">
+    <meta name="theme-color" content="#FEFEFE" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#21262F" media="(prefers-color-scheme: dark)">
     <title>GenieGenerate</title>
     <!--
         Universal-link fallback landing page for link/staginglink/devlink
@@ -18,82 +21,170 @@
         for enum routes (verify-email, reset-password, login) and the
         authority-folded form ShopShareLink / SlipVerificationLink accept
         for /shop/<uuid> and /v/<token>.
+
+        Design tokens mirror business/FRONTEND_DESIGN_SYSTEM.md (mobile-app
+        repo): 6-level grayscale + single member-mode accent (#F6921A),
+        radius md=12px, onPrimary-on-orange is always ink (#21262F).
     -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;700&amp;family=Inter:wght@400;600&amp;display=swap">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        [hidden] { display: none !important; }
         :root {
+            /* Single accent — member-mode orange family */
             --brand: #F6921A;
-            --brand-dark: #d97b06;
-            --ink: #1f2430;
-            --ink-soft: #5a6072;
-            --card: rgba(255, 255, 255, 0.96);
+            --brand-press: #EB850A;
+            --brand-link: #D37708;
+            --on-brand: #21262F;
+            /* Monochrome — light grayscale */
+            --ink: #21262F;        /* Lv1 primary text   */
+            --ink-2: #5A6270;      /* Lv2 secondary text */
+            --ink-3: #646C7A;      /* Lv3 tertiary text  */
+            --line: #B9C0CB;       /* Lv4 borders        */
+            --bg: #FEFEFE;
+            --glow: rgba(246, 146, 26, 0.09);
+            --grid: rgba(33, 38, 47, 0.06);
+            /* Shape & type */
+            --radius-md: 12px;
+            --font-thai: 'IBM Plex Sans Thai';
+            --font-en: 'Inter';
+            --stack: var(--font-en), var(--font-thai), 'Segoe UI', Tahoma, sans-serif;
         }
         @media (prefers-color-scheme: dark) {
             :root {
-                --ink: #f2f4f8;
-                --ink-soft: #b6bcc9;
-                --card: rgba(28, 31, 40, 0.96);
+                --ink: #EAEEEF;    /* Lv1 dark */
+                --ink-2: #A0A8B6;  /* Lv2 dark */
+                --ink-3: #949CAA;  /* Lv3 dark */
+                --line: #343B46;   /* Lv4 dark */
+                --bg: #21262F;     /* Lv6 dark background */
+                --glow: rgba(246, 146, 26, 0.12);
+                --grid: rgba(234, 238, 239, 0.045);
             }
         }
+        html, body { height: 100%; }
         body {
-            font-family: 'Inter', 'IBM Plex Sans Thai', 'Segoe UI', Tahoma, sans-serif;
-            background: linear-gradient(135deg, #F6921A 0%, #0FA4A4 100%);
+            font-family: var(--stack);
+            color: var(--ink);
+            background-color: var(--bg);
+            background-image:
+                radial-gradient(640px 340px at 50% -120px, var(--glow), transparent 70%),
+                radial-gradient(var(--grid) 1px, transparent 1px);
+            background-size: auto, 24px 24px;
             min-height: 100vh;
+            min-height: 100svh;
             display: flex;
+            flex-direction: column;
+        }
+        /* Thin brand rule along the top edge — the accent, used once, sharply. */
+        .brand-rule {
+            height: 3px;
+            flex: none;
+            background: linear-gradient(90deg, transparent, var(--brand) 18%, var(--brand) 82%, transparent);
+        }
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-        }
-        .container {
-            background: var(--card);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
-            padding: 2.5rem 2rem;
             text-align: center;
-            max-width: 420px;
-            margin: 1.5rem;
+            padding: 2rem 1.5rem;
+            max-width: 480px;
+            margin: 0 auto;
+            width: 100%;
         }
-        .glyph { font-size: 3rem; line-height: 1; }
+        /* Mark: ghost monochrome cube behind a solid brand cube. */
+        .mark { color: var(--ink); }
+        .mark svg { display: block; width: 92px; height: 92px; }
         h1 {
-            margin-top: 0.75rem;
-            font-size: 1.6rem;
-            color: var(--ink);
-            letter-spacing: -0.01em;
+            margin-top: 1.4rem;
+            font-family: var(--font-thai), var(--font-en), sans-serif;
+            font-size: clamp(1.7rem, 6vw, 2.05rem);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 1.15;
         }
-        p {
-            margin-top: 0.75rem;
-            color: var(--ink-soft);
-            font-size: 1rem;
-            line-height: 1.55;
-        }
+        h1 .accent { color: var(--brand-link); }
+        p { color: var(--ink-2); font-size: 1rem; line-height: 1.65; }
+        #message { margin-top: 0.9rem; }
         .open-btn {
             display: none;
-            margin: 1.5rem auto 0;
-            padding: 0.95rem 2.2rem;
-            min-height: 44px;
+            margin: 1.75rem auto 0;
+            padding: 0.95rem 2.4rem;
+            min-height: 48px;
             border: 0;
-            border-radius: 12px;
+            border-radius: var(--radius-md);
             background: var(--brand);
-            color: #fff;
+            color: var(--on-brand);
             font-size: 1.05rem;
             font-weight: 600;
             font-family: inherit;
             cursor: pointer;
+            transition: background-color 120ms ease, transform 120ms ease;
         }
-        .open-btn:active { background: var(--brand-dark); }
-        .hint { font-size: 0.85rem; margin-top: 1.25rem; }
+        .open-btn:hover { background: var(--brand-press); }
+        .open-btn:active { background: var(--brand-press); transform: translateY(1px); }
+        .open-btn:focus-visible { outline: 2px solid var(--brand-link); outline-offset: 3px; }
+        .hint {
+            font-size: 0.85rem;
+            color: var(--ink-3);
+            margin-top: 1.4rem;
+            padding-top: 1.1rem;
+            border-top: 1px solid var(--line);
+        }
+        footer {
+            flex: none;
+            text-align: center;
+            padding: 1.4rem 1.5rem 1.6rem;
+            font-size: 0.8rem;
+            color: var(--ink-3);
+        }
+        footer .dot { color: var(--brand); }
+        /* Staggered page-load reveal; the mark then levitates gently. */
+        .reveal {
+            opacity: 0;
+            transform: translateY(14px);
+            animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            animation-delay: var(--d, 0s);
+        }
+        @keyframes rise { to { opacity: 1; transform: translateY(0); } }
+        .mark svg { animation: float 5.5s ease-in-out 1s infinite alternate; }
+        @keyframes float { from { transform: translateY(0); } to { transform: translateY(-7px); } }
+        @media (prefers-reduced-motion: reduce) {
+            .reveal { animation: none; opacity: 1; transform: none; }
+            .mark svg { animation: none; }
+        }
     </style>
 </head>
 <body>
-    <main class="container">
-        <div class="glyph" aria-hidden="true">🧞</div>
-        <h1>GenieGenerate</h1>
-        <p id="message">ชุมชนร้านค้าและกระเป๋าเงินดิจิทัลของคุณ<br>Your shops &amp; digital wallet community.</p>
-        <button id="openApp" class="open-btn" type="button">เปิดในแอป GenieGenerate</button>
+    <div class="brand-rule" aria-hidden="true"></div>
+    <main>
+        <div class="mark reveal" aria-hidden="true">
+            <svg viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Ghost cube — monochrome ink outline -->
+                <g stroke="currentColor" stroke-width="2" stroke-linejoin="round" opacity="0.4">
+                    <path d="M60 14 80.8 26v24L60 62 39.2 50V26Z"/>
+                    <path d="M39.2 26 60 38l20.8-12M60 38v24"/>
+                </g>
+                <!-- Brand cube — orange family, three faces -->
+                <path d="M38 32 60.5 45 38 58 15.5 45Z" fill="#F6921A"/>
+                <path d="M15.5 45 38 58v26L15.5 71Z" fill="#D37708"/>
+                <path d="M60.5 45 38 58v26l22.5-13Z" fill="#EB850A"/>
+            </svg>
+        </div>
+        <h1 class="reveal" style="--d: 0.08s">Genie<span class="accent">Generate</span></h1>
+        <p id="message" class="reveal" style="--d: 0.16s">ชุมชนร้านค้าและกระเป๋าเงินดิจิทัลของคุณ<br>Your shops &amp; digital wallet community.</p>
+        <button id="openApp" class="open-btn reveal" style="--d: 0.24s" type="button">เปิดในแอป GenieGenerate</button>
         <p id="hint" class="hint" hidden>
             ถ้าแอปไม่เปิดขึ้นมา แสดงว่ายังไม่ได้ติดตั้งแอป GenieGenerate บนเครื่องนี้<br>
             If the app didn't open, GenieGenerate isn't installed on this device yet.
         </p>
     </main>
+    <footer>
+        <span class="dot" aria-hidden="true">●</span>&nbsp; geniegenerate.com
+    </footer>
     <script>
         (function () {
             'use strict';
