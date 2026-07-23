@@ -1,413 +1,135 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GenieGenerate</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    <!--
+        Universal-link fallback landing page for link/staginglink/devlink
+        .geniegenerate.com. Every path rewrites here (see _redirects).
 
+        Why it exists: in-app browsers (LINE, Messenger, Instagram) load
+        tapped links in their own webview and NEVER trigger iOS Universal
+        Links / Android App Links. This page is what those users see, so it
+        re-launches the app through the custom scheme
+        (com.geniegenerate.mobile://...), which webviews DO hand off to the
+        OS. The scheme URL is minted from the current path with one rule —
+        strip the leading slash — which yields the host-form the app parses
+        for enum routes (verify-email, reset-password, login) and the
+        authority-folded form ShopShareLink / SlipVerificationLink accept
+        for /shop/<uuid> and /v/<token>.
+    -->
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --brand: #F6921A;
+            --brand-dark: #d97b06;
+            --ink: #1f2430;
+            --ink-soft: #5a6072;
+            --card: rgba(255, 255, 255, 0.96);
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --ink: #f2f4f8;
+                --ink-soft: #b6bcc9;
+                --card: rgba(28, 31, 40, 0.96);
+            }
+        }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', 'IBM Plex Sans Thai', 'Segoe UI', Tahoma, sans-serif;
             background: linear-gradient(135deg, #F6921A 0%, #0FA4A4 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-
         .container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
+            background: var(--card);
             border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            padding: 3rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+            padding: 2.5rem 2rem;
             text-align: center;
-            max-width: 600px;
-            margin: 2rem;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 420px;
+            margin: 1.5rem;
         }
-
-        .logo {
-            font-size: 3rem;
-            font-weight: bold;
-            background: linear-gradient(135deg, #F6921A 0%, #0FA4A4 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 1rem;
-        }
-
+        .glyph { font-size: 3rem; line-height: 1; }
         h1 {
-            color: #333;
-            margin-bottom: 1rem;
-            font-size: 2.5rem;
-            font-weight: 300;
+            margin-top: 0.75rem;
+            font-size: 1.6rem;
+            color: var(--ink);
+            letter-spacing: -0.01em;
         }
-
-        .subtitle {
-            color: #666;
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
-            line-height: 1.6;
-        }
-
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
-
-        .feature {
-            background: rgba(246, 146, 26, 0.1);
-            padding: 1.5rem;
-            border-radius: 15px;
-            border: 1px solid rgba(246, 146, 26, 0.2);
-            transition: transform 0.3s ease;
-        }
-
-        .feature:hover {
-            transform: translateY(-5px);
-        }
-
-        .feature-icon {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .feature h3 {
-            color: #333;
-            margin-bottom: 0.5rem;
-            font-size: 1.1rem;
-        }
-
-        .feature p {
-            color: #666;
-            font-size: 0.9rem;
-        }
-
-        .cta-button {
-            display: inline-block;
-            background: linear-gradient(135deg, #F6921A 0%, #0FA4A4 100%);
-            color: white;
-            text-decoration: none;
-            padding: 1rem 2rem;
-            border-radius: 50px;
-            font-weight: 600;
-            margin-top: 2rem;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: 0 10px 20px rgba(246, 146, 26, 0.3);
-        }
-
-        .cta-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(246, 146, 26, 0.4);
-        }
-
-        .footer {
-            margin-top: 3rem;
-            padding-top: 2rem;
-            border-top: 1px solid rgba(0, 0, 0, 0.1);
-            color: #666;
-            font-size: 0.9rem;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                margin: 1rem;
-                padding: 2rem;
-            }
-            
-            .logo {
-                font-size: 2rem;
-            }
-            
-            h1 {
-                font-size: 2rem;
-            }
-            
-            .features {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Verification page styles */
-        .verification-container {
-            display: none;
-        }
-
-        .verification-container.active {
-            display: block;
-        }
-
-        .status-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-        }
-
-        .status-icon.loading {
-            animation: pulse 1.5s ease-in-out infinite alternate;
-        }
-
-        .status-icon.success {
-            color: #28a745;
-        }
-
-        .status-icon.error {
-            color: #dc3545;
-        }
-
-        @keyframes pulse {
-            from { opacity: 1; }
-            to { opacity: 0.5; }
-        }
-
-        .status-message {
-            color: #333;
-            font-size: 1.2rem;
-            margin-bottom: 1rem;
-        }
-
-        .status-detail {
-            color: #666;
+        p {
+            margin-top: 0.75rem;
+            color: var(--ink-soft);
             font-size: 1rem;
-            line-height: 1.6;
-            margin-bottom: 2rem;
+            line-height: 1.55;
         }
-
-        .action-button {
-            display: inline-block;
-            background: linear-gradient(135deg, #F6921A 0%, #0FA4A4 100%);
-            color: white;
-            text-decoration: none;
-            padding: 0.8rem 1.5rem;
-            border: none;
-            border-radius: 25px;
+        .open-btn {
+            display: none;
+            margin: 1.5rem auto 0;
+            padding: 0.95rem 2.2rem;
+            min-height: 44px;
+            border: 0;
+            border-radius: 12px;
+            background: var(--brand);
+            color: #fff;
+            font-size: 1.05rem;
             font-weight: 600;
-            margin: 0.5rem;
+            font-family: inherit;
             cursor: pointer;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: 0 8px 16px rgba(246, 146, 26, 0.3);
         }
-
-        .action-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 24px rgba(246, 146, 26, 0.4);
-        }
-
-        .countdown {
-            font-weight: bold;
-            color: #F6921A;
-        }
+        .open-btn:active { background: var(--brand-dark); }
+        .hint { font-size: 0.85rem; margin-top: 1.25rem; }
     </style>
 </head>
 <body>
-    <!-- Home Page -->
-    <div class="container" id="home-page">
-        <div class="logo">🧞‍♂️</div>
+    <main class="container">
+        <div class="glyph" aria-hidden="true">🧞</div>
         <h1>GenieGenerate</h1>
-        <p class="subtitle">Premium hosting solutions that bring your digital dreams to life</p>
-        
-        <div class="features">
-            <div class="feature">
-                <div class="feature-icon">⚡</div>
-                <h3>Lightning Fast</h3>
-                <p>Experience blazing-fast load times with our optimized hosting infrastructure</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">🔒</div>
-                <h3>Secure & Reliable</h3>
-                <p>Enterprise-grade security with 99.9% uptime guarantee for peace of mind</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">🌍</div>
-                <h3>Global CDN</h3>
-                <p>Worldwide content delivery network ensures fast access from anywhere</p>
-            </div>
-        </div>
-        
-        <a href="#" class="cta-button">Get Started Today</a>
-        
-        <div class="footer">
-            <p>&copy; 2024 GenieGenerate. Making hosting magical since today.</p>
-        </div>
-    </div>
-
-    <!-- Email Verification Page -->
-    <div class="container verification-container" id="verification-page">
-        <div class="logo">🧞‍♂️</div>
-        <h1>Email Verification</h1>
-        
-        <div id="verification-content">
-            <div class="status-icon loading" id="status-icon">⏳</div>
-            <p class="status-message" id="status-message">Processing your verification...</p>
-            <p class="status-detail" id="status-detail">Please wait while we verify your email address.</p>
-            <div id="actions"></div>
-        </div>
-    </div>
-
+        <p id="message">ชุมชนร้านค้าและกระเป๋าเงินดิจิทัลของคุณ<br>Your shops &amp; digital wallet community.</p>
+        <button id="openApp" class="open-btn" type="button">เปิดในแอป GenieGenerate</button>
+        <p id="hint" class="hint" hidden>
+            ถ้าแอปไม่เปิดขึ้นมา แสดงว่ายังไม่ได้ติดตั้งแอป GenieGenerate บนเครื่องนี้<br>
+            If the app didn't open, GenieGenerate isn't installed on this device yet.
+        </p>
+    </main>
     <script>
-        // Configuration
-        const MOBILE_DEEP_LINK_SCHEME = 'com.geniegenerate.mobile';
-        
-        // Deep link route mappings - easily extensible for future routes
-        const DEEP_LINK_ROUTES = {
-            'verify-email': {
-                path: 'verify-email',
-                requiredParams: ['token'],
-                optionalParams: ['email'],
-                message: 'Redirecting to verify your email...',
-                icon: '📧'
-            },
-            'reset-password': {
-                path: 'reset-password', 
-                requiredParams: ['token'],
-                optionalParams: ['email'],
-                message: 'Redirecting to reset your password...',
-                icon: '🔐'
-            },
-            'login': {
-                path: 'login',
-                requiredParams: [],
-                optionalParams: ['redirectTo'],
-                message: 'Opening sign in page...',
-                icon: '🔑'
-            },
-            'profile': {
-                path: 'profile',
-                requiredParams: ['userId'],
-                optionalParams: ['tab'],
-                message: 'Opening your profile...',
-                icon: '👤'
-            },
-            'notification': {
-                path: 'notification',
-                requiredParams: ['notificationId'],
-                optionalParams: ['userId'],
-                message: 'Opening notification...',
-                icon: '🔔'
-            }
-            // Add more routes here as needed
-        };
+        (function () {
+            'use strict';
+            var path = window.location.pathname;
+            var search = window.location.search;
+            // Path families the app can route. Anything else stays a plain
+            // landing page (never mint a scheme URL from arbitrary input).
+            var DEEP_LINKABLE = [
+                /^\/shop\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+                /^\/v\/[0-9a-f]{32}$/,
+                /^\/verify-email$/,
+                /^\/reset-password$/,
+                /^\/login$/
+            ];
+            var linkable = DEEP_LINKABLE.some(function (re) { return re.test(path); });
+            if (!linkable) { return; }
 
-        // Get URL parameters
-        function getUrlParams() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const params = {};
-            for (let [key, value] of urlParams) {
-                params[key] = value;
-            }
-            return {
-                ...params,
-                path: window.location.pathname.replace(/^\/+|\/+$/g, '') // Remove leading/trailing slashes
-            };
-        }
+            var appUrl = 'com.geniegenerate.mobile://' + path.slice(1) + search;
+            var btn = document.getElementById('openApp');
+            var msg = document.getElementById('message');
+            var hint = document.getElementById('hint');
 
-        // Update verification UI
-        function updateVerificationUI(icon, message) {
-            document.getElementById('status-icon').innerHTML = icon;
-            document.getElementById('status-message').textContent = message;
-            document.getElementById('status-detail').textContent = '';
-        }
-
-        // Build deep link URL from route config and parameters
-        function buildDeepLink(routeConfig, params) {
-            let deepLink = `${MOBILE_DEEP_LINK_SCHEME}://${routeConfig.path}`;
-            const queryParams = [];
-            
-            // Add required parameters
-            routeConfig.requiredParams.forEach(paramName => {
-                if (params[paramName]) {
-                    queryParams.push(`${paramName}=${encodeURIComponent(params[paramName])}`);
-                }
+            msg.innerHTML = 'ลิงก์นี้เปิดในแอป GenieGenerate<br>This link opens in the GenieGenerate app.';
+            btn.style.display = 'inline-block';
+            btn.addEventListener('click', function () {
+                hint.hidden = false;
+                window.location.href = appUrl;
             });
-            
-            // Add optional parameters if they exist
-            routeConfig.optionalParams.forEach(paramName => {
-                if (params[paramName]) {
-                    queryParams.push(`${paramName}=${encodeURIComponent(params[paramName])}`);
-                }
-            });
-            
-            if (queryParams.length > 0) {
-                deepLink += '?' + queryParams.join('&');
-            }
-            
-            return deepLink;
-        }
 
-        // Auto-redirect to mobile app based on route
-        function autoRedirectToMobileApp(routeKey, params) {
-            const routeConfig = DEEP_LINK_ROUTES[routeKey];
-            
-            if (!routeConfig) {
-                console.error(`Unknown route: ${routeKey}`);
-                return;
-            }
-            
-            // Check if required parameters are present
-            const missingParams = routeConfig.requiredParams.filter(param => !params[param]);
-            if (missingParams.length > 0) {
-                console.error(`Missing required parameters: ${missingParams.join(', ')}`);
-                updateVerificationUI('❌', 'Invalid link - missing required information');
-                return;
-            }
-            
-            const deepLink = buildDeepLink(routeConfig, params);
-            
-            updateVerificationUI(routeConfig.icon, routeConfig.message);
-            
-            // Immediately redirect to mobile app
-            window.location.href = deepLink;
-        }
-
-        // Determine route from URL path or parameters
-        function detectRoute(params) {
-            // Priority 1: Check URL path
-            if (params.path) {
-                // Handle paths like /verify-email, verify-email, etc.
-                const cleanPath = params.path.toLowerCase();
-                for (let [routeKey, config] of Object.entries(DEEP_LINK_ROUTES)) {
-                    if (cleanPath === config.path || cleanPath.endsWith(config.path)) {
-                        return routeKey;
-                    }
-                }
-            }
-            
-            // Priority 2: Infer from parameters
-            if (params.token && params.email !== undefined) return 'verify-email';
-            if (params.token && !params.email) return 'reset-password';
-            if (params.userId) return 'profile';
-            if (params.notificationId) return 'notification';
-            
-            return null;
-        }
-
-        // Main routing logic
-        function initializeApp() {
-            const params = getUrlParams();
-            const routeKey = detectRoute(params);
-            
-            if (routeKey) {
-                // Show verification page and auto-redirect
-                document.getElementById('home-page').style.display = 'none';
-                document.getElementById('verification-page').classList.add('active');
-                
-                autoRedirectToMobileApp(routeKey, params);
-            } else {
-                // Show home page for regular visits
-                document.getElementById('home-page').style.display = 'block';
-                document.getElementById('verification-page').classList.remove('active');
-            }
-        }
-
-        // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', initializeApp);
+            // Auto-attempt once: installed → OS prompts/opens the app;
+            // not installed → silent no-op and the button/hint remain.
+            setTimeout(function () {
+                hint.hidden = false;
+                window.location.href = appUrl;
+            }, 600);
+        })();
     </script>
 </body>
 </html>
