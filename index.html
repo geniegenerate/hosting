@@ -101,17 +101,30 @@
             var search = window.location.search;
             // Path families the app can route. Anything else stays a plain
             // landing page (never mint a scheme URL from arbitrary input).
-            var DEEP_LINKABLE = [
+            // Path-parameterized families mint the TRIPLE-slash shape
+            // (scheme:///shop/x — empty authority) so the Flutter engine
+            // hands the app a clean /shop/x path on cold start; the
+            // double-slash shape makes it swallow the first segment as the
+            // URI authority. Enum routes mint the host form (scheme://login)
+            // the app maps by authority.
+            var PATH_PARAM = [
                 /^\/shop\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
-                /^\/v\/[0-9a-f]{32}$/,
+                /^\/v\/[0-9a-f]{32}$/
+            ];
+            var HOST_FORM = [
                 /^\/verify-email$/,
                 /^\/reset-password$/,
                 /^\/login$/
             ];
-            var linkable = DEEP_LINKABLE.some(function (re) { return re.test(path); });
-            if (!linkable) { return; }
-
-            var appUrl = 'com.geniegenerate.mobile://' + path.slice(1) + search;
+            var test = function (re) { return re.test(path); };
+            var appUrl;
+            if (PATH_PARAM.some(test)) {
+                appUrl = 'com.geniegenerate.mobile://' + path + search;
+            } else if (HOST_FORM.some(test)) {
+                appUrl = 'com.geniegenerate.mobile://' + path.slice(1) + search;
+            } else {
+                return;
+            }
             var btn = document.getElementById('openApp');
             var msg = document.getElementById('message');
             var hint = document.getElementById('hint');
