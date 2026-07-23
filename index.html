@@ -26,7 +26,10 @@
         repo): 6-level grayscale + single member-mode accent (#F6921A),
         radius md=12px, onPrimary-on-orange is always ink (#21262F). The
         mark is the official logo (images/logo.png, transparent RGBA —
-        served directly; static assets win over the /* SPA rewrite).
+        served directly; static assets win over the /* SPA rewrite). Per
+        the Wordmark & Name Standard (BRAND_FRAMEWORK.md §9 / design
+        system §4.9) the wordmark is one mode-neutral color; brand color
+        lives on the icon mark only.
     -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -106,7 +109,6 @@
             letter-spacing: -0.02em;
             line-height: 1.15;
         }
-        h1 .accent { color: var(--brand-link); }
         p { color: var(--ink-2); font-size: 1rem; line-height: 1.65; }
         #message { margin-top: 0.9rem; }
         .open-btn {
@@ -164,7 +166,7 @@
         <div class="mark reveal" aria-hidden="true">
             <img src="/images/logo.png" alt="" width="400" height="400">
         </div>
-        <h1 class="reveal" style="--d: 0.08s">Genie<span class="accent">Generate</span></h1>
+        <h1 class="reveal" style="--d: 0.08s">GenieGenerate</h1>
         <p id="message" class="reveal" style="--d: 0.16s">ชุมชนร้านค้าและกระเป๋าเงินดิจิทัลของคุณ<br>Your shops &amp; digital wallet community.</p>
         <button id="openApp" class="open-btn reveal" style="--d: 0.24s" type="button">เปิดในแอป GenieGenerate</button>
         <p id="hint" class="hint" hidden>
