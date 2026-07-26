@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="GenieGenerate — ชุมชนร้านค้าและกระเป๋าเงินดิจิทัลของคุณ. Your shops &amp; digital wallet community.">
+    <meta name="description" content="GenieGenerate — your shops &amp; digital wallet community.">
     <meta name="theme-color" content="#FEFEFE" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#21262F" media="(prefers-color-scheme: dark)">
     <title>GenieGenerate</title>
@@ -30,13 +30,32 @@
         rules, the quiet action's border. The brand accent is spent on the
         ONE action that matters plus the icon mark, so orange always means
         "this is the way through" rather than decoration. The ground stays
-        flat: no gradient, no pattern, no glow.
+        flat: no gradient, no pattern, no glow, no top accent bar
+        (BRAND_FRAMEWORK.md "Surface Discipline" / design system §3.8).
 
-        Thai leads and English glosses beneath it at a smaller size — the
-        page is lang="th" for a Thai audience, and the old side-by-side
-        <br> treatment gave both equal weight, which read as a doubled wall
-        of text. Each run carries its own lang attribute so a screen reader
-        switches voice instead of reading Thai in an English one.
+        LOCALE — one language, never two. This is a PUBLIC, unauthenticated
+        surface, so company/strategy/THAILAND_MARKET_STRATEGY.md §4.3a
+        "Thai Language Boundary" governs it: Thai may appear only PASSIVELY
+        — "locale follows browser preference or a manual toggle; never
+        geo-pushed at Thailand". The page was previously hardcoded bilingual
+        and, after the threshold redesign, Thai-first for every visitor
+        including US ones, which is the weakest posture under that clause.
+        Now the head script picks ONE locale from navigator.languages in
+        preference order, defaulting to English on every miss — matching
+        packages/i18n defaultLocale "en" and the transactional-email rule
+        that every miss is English. A stored manual choice always wins,
+        because a static page has no other recovery when the guess is
+        wrong; the footer toggle is that recovery, and it is the second
+        sanctioned mechanism in §4.3a.
+
+        Both locales ship in the markup and CSS reveals exactly one, so the
+        decision lands before first paint with no flash of the wrong
+        language and no blank frame — the same no-flash shape as
+        web/packages/theme theme-script. The inactive run is display:none,
+        so it is absent from the accessibility tree: screen readers,
+        translation prompts and copy/paste all see a single-language page.
+        With JavaScript off the markup renders as-authored — English,
+        complete — which is the correct default rather than a degraded one.
 
         Tokens mirror business/FRONTEND_DESIGN_SYSTEM.md (mobile-app repo):
         6-level grayscale + single member-mode accent (#F6921A), radius
@@ -54,6 +73,30 @@
         system §4.9) the wordmark is one mode-neutral color; brand color
         lives on the icon mark only.
     -->
+    <script>
+        /* Locale bootstrap — must run before first paint, and before the
+           body exists, so it only touches <html>. Order of precedence:
+           stored manual choice, then navigator preference order, then
+           English. Wrapped because Safari private mode throws on
+           localStorage access rather than returning null. */
+        (function () {
+            'use strict';
+            var SUPPORTED = { en: 1, th: 1 };
+            var choice = null;
+            try { choice = window.localStorage.getItem('gg-locale'); } catch (e) { /* storage blocked */ }
+            if (!SUPPORTED[choice]) {
+                var prefs = (navigator.languages && navigator.languages.length)
+                    ? navigator.languages
+                    : [navigator.language];
+                choice = 'en';
+                for (var i = 0; i < prefs.length; i++) {
+                    var base = String(prefs[i] || '').toLowerCase().split('-')[0];
+                    if (SUPPORTED[base]) { choice = base; break; }
+                }
+            }
+            document.documentElement.lang = choice;
+        })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;family=Inter:wght@400;500;600;700&amp;display=swap">
@@ -92,6 +135,14 @@
             }
         }
 
+        /* ---- One locale, chosen before paint ---------------------------------
+           Every localized run ships as a pair; exactly one is ever rendered.
+           display:none also removes the inactive run from the accessibility
+           tree, so the page is single-language to a screen reader too. */
+        [data-l] { display: none; }
+        html[lang="en"] [data-l="en"],
+        html[lang="th"] [data-l="th"] { display: inline; }
+
         html, body { height: 100%; }
         body {
             font-family: var(--stack);
@@ -105,7 +156,8 @@
         }
         /* Thai runs get the Thai face first — Inter carries no Thai glyphs, so
            leaving it first means the browser falls through mid-word and the
-           metrics shift. */
+           metrics shift. Document-wide when lang="th"; on an English page this
+           still catches the one Thai run, the toggle's own label. */
         :lang(th) { font-family: var(--font-thai), var(--font-en), sans-serif; }
 
         main {
@@ -128,8 +180,7 @@
             height: auto;
         }
 
-        /* Headline states the destination. Thai leads; the English gloss sits
-           beneath at a smaller size rather than beside it at equal weight. */
+        /* Headline states the destination. */
         .lede { display: flex; flex-direction: column; gap: calc(var(--step) * 1.25); }
         h1 {
             font-size: clamp(1.55rem, 5.4vw, 1.95rem);
@@ -138,10 +189,6 @@
             line-height: 1.25;
             text-wrap: balance;
         }
-        /* Two secondary roles, kept distinct so a bilingual block reads as a
-           hierarchy rather than the same sentence twice:
-             .sub   — the Thai line under a heading
-             .gloss — the English rendering of whatever sits above it  */
         .sub {
             color: var(--ink-2);
             font-size: 0.975rem;
@@ -149,26 +196,17 @@
             line-height: 1.55;
             text-wrap: pretty;
         }
-        .gloss {
-            display: block;
-            color: var(--ink-3);
-            font-size: 0.875rem;
-            font-weight: 400;
-            line-height: 1.5;
-            text-wrap: pretty;
-        }
 
         /* ---- One action primitive, two weights -------------------------------
            The filled variant is the way through; the quiet one is the escape
-           hatch. Sharing a single rule keeps their height, radius, focus ring
-           and bilingual stacking identical — they used to be two hand-written
-           blocks that drifted. */
+           hatch. Sharing a single rule keeps their height, radius and focus
+           ring identical — they used to be two hand-written blocks that
+           drifted. */
         .actions { display: flex; flex-direction: column; gap: calc(var(--step) * 1.5); width: 100%; }
         .action {
             display: none;                /* revealed per state by the script */
-            flex-direction: column;
             align-items: center;
-            gap: 0.1rem;
+            justify-content: center;
             width: 100%;
             min-height: 52px;
             padding: 0.8rem 1.5rem;
@@ -185,10 +223,6 @@
                         color 140ms var(--ease);
         }
         .action[data-shown] { display: flex; }
-        /* Differentiated by size and weight ONLY. An earlier pass dimmed this
-           with opacity: 0.75, which drops ink-on-orange to 2.9:1 and the quiet
-           variant far below that — both failing AA on text this small. */
-        .action .gloss { font-size: 0.8rem; font-weight: 500; color: inherit; }
         .action:focus-visible { outline: 2px solid var(--brand-quiet); outline-offset: 3px; }
 
         .action--primary { background: var(--brand); color: var(--on-brand); }
@@ -202,7 +236,6 @@
            to brand on hover, where it is decoration rather than the affordance. */
         .action--quiet { background: transparent; color: var(--ink); border-color: var(--line); }
         .action--quiet:hover { border-color: var(--brand); }
-        .action--quiet .gloss { color: var(--ink-2); }
 
         /* ---- Aftermath note --------------------------------------------------
            Appears once the hand-off has been attempted. */
@@ -214,12 +247,14 @@
             border-top: 1px solid var(--line);
             width: 100%;
         }
-        .hint .gloss { font-size: 0.8rem; color: inherit; }
 
         footer {
             flex: none;
-            text-align: center;
-            padding: calc(var(--step) * 3) calc(var(--step) * 3) calc(var(--step) * 3.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: calc(var(--step) * 2);
+            padding: var(--step) calc(var(--step) * 3) calc(var(--step) * 2);
             font-size: 0.78rem;
             letter-spacing: 0.01em;
             color: var(--ink-3);
@@ -227,6 +262,30 @@
         /* The brand dot signs the page off. Purely decorative (aria-hidden), so
            it carries no contrast requirement — the wordmark beside it does. */
         footer .dot { color: var(--brand); }
+
+        /* The locale recovery. Quieter than the quiet action — no frame, since
+           a third bordered weight would compete with the escape hatch — but a
+           full 44px target. Underline is what marks it as operable. */
+        .locale {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            min-width: 44px;
+            padding: 0 calc(var(--step) * 1.25);
+            background: none;
+            border: 0;
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-size: inherit;
+            letter-spacing: inherit;
+            color: var(--ink-3);
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            cursor: pointer;
+        }
+        .locale:hover { color: var(--ink); }
+        .locale:focus-visible { outline: 2px solid var(--brand-quiet); outline-offset: 2px; }
 
         /* One orchestrated entrance, then stillness — the page's whole life is
            about 600ms, so a perpetually floating mark was noise. */
@@ -249,40 +308,78 @@
             <img src="/images/logo.png" alt="" width="400" height="400">
         </div>
 
-        <div class="lede">
-            <h1 id="title" class="reveal" style="--d: 0.06s" lang="en">GenieGenerate</h1>
-            <p id="message" class="sub reveal" style="--d: 0.12s" lang="th">
-                ชุมชนร้านค้าและกระเป๋าเงินดิจิทัลของคุณ
-                <span class="gloss" lang="en">Your shops &amp; digital wallet community.</span>
+        <!-- Landing state: the wordmark is the headline. -->
+        <div class="lede" id="ledeDefault">
+            <h1 class="reveal" style="--d: 0.06s">GenieGenerate</h1>
+            <p class="sub reveal" style="--d: 0.12s">
+                <span data-l="en">Your shops &amp; digital wallet community.</span>
+                <span data-l="th">ชุมชนร้านค้าและกระเป๋าเงินดิจิทัลของคุณ</span>
             </p>
         </div>
 
+        <!-- Deep-link state: the icon mark above already carries identity, so
+             the headline spends itself naming the destination instead. -->
+        <div class="lede" id="ledeLink" hidden>
+            <h1 class="reveal" style="--d: 0.06s">
+                <span data-l="en">This link opens in the GenieGenerate app.</span>
+                <span data-l="th">ลิงก์นี้เปิดในแอป GenieGenerate</span>
+            </h1>
+        </div>
+
         <div class="actions">
-            <button id="openApp" class="action action--primary reveal" style="--d: 0.18s" type="button" lang="th">
-                เปิดในแอป GenieGenerate
-                <span class="gloss" lang="en">Open in the app</span>
+            <button id="openApp" class="action action--primary reveal" style="--d: 0.18s" type="button">
+                <span data-l="en">Open in the app</span>
+                <span data-l="th">เปิดในแอป GenieGenerate</span>
             </button>
 
             <!-- Browser escape hatch for credential links. Secondary to the app
                  button by design, but always visible — the person reading it may
                  have no app and no other way in. -->
-            <a id="webFallbackLink" class="action action--quiet reveal" style="--d: 0.24s" href="#" lang="th">
-                ตั้งรหัสผ่านใหม่ในเบราว์เซอร์
-                <span class="gloss" lang="en">Reset in your browser</span>
+            <a id="webFallbackLink" class="action action--quiet reveal" style="--d: 0.24s" href="#">
+                <span data-l="en">Reset in your browser</span>
+                <span data-l="th">ตั้งรหัสผ่านใหม่ในเบราว์เซอร์</span>
             </a>
         </div>
 
-        <p id="hint" class="hint" hidden aria-live="polite" lang="th">
-            ถ้าแอปไม่เปิดขึ้นมา แสดงว่ายังไม่ได้ติดตั้งแอป GenieGenerate บนเครื่องนี้
-            <span class="gloss" lang="en">If the app didn't open, GenieGenerate isn't installed on this device yet.</span>
+        <p id="hint" class="hint" hidden aria-live="polite">
+            <span data-l="en">If the app didn't open, GenieGenerate isn't installed on this device yet.</span>
+            <span data-l="th">ถ้าแอปไม่เปิดขึ้นมา แสดงว่ายังไม่ได้ติดตั้งแอป GenieGenerate บนเครื่องนี้</span>
         </p>
     </main>
 
-    <footer lang="en"><span class="dot" aria-hidden="true">●</span>&nbsp;geniegenerate.com</footer>
+    <footer>
+        <span><span class="dot" aria-hidden="true">●</span>&nbsp;geniegenerate.com</span>
+        <!-- Offers the OTHER language, written in that language, so it is
+             legible to the person who needs it. -->
+        <button id="localeToggle" class="locale" type="button">
+            <span data-l="en" lang="th">ไทย</span>
+            <span data-l="th" lang="en">English</span>
+        </button>
+    </footer>
 
     <script>
         (function () {
             'use strict';
+
+            // ---- Locale recovery ------------------------------------------
+            // The head script already chose and applied the locale; this only
+            // wires the manual override, which persists so the choice survives
+            // both the hand-off and the next visit.
+            var toggle = document.getElementById('localeToggle');
+            // Labelled in the language being OFFERED, matching the visible run.
+            var OFFER_LABEL = { en: 'เปลี่ยนเป็นภาษาไทย', th: 'Switch to English' };
+            var applyToggleLabel = function () {
+                toggle.setAttribute('aria-label', OFFER_LABEL[document.documentElement.lang] || OFFER_LABEL.en);
+            };
+            applyToggleLabel();
+            toggle.addEventListener('click', function () {
+                var next = document.documentElement.lang === 'th' ? 'en' : 'th';
+                document.documentElement.lang = next;
+                applyToggleLabel();
+                try { window.localStorage.setItem('gg-locale', next); } catch (e) { /* storage blocked */ }
+            });
+
+            // ---- Hand-off --------------------------------------------------
             var path = window.location.pathname;
             var search = window.location.search;
             // Path families the app can route. Anything else stays a plain
@@ -315,17 +412,8 @@
             var btn = document.getElementById('openApp');
             var hint = document.getElementById('hint');
 
-            // The headline's job is to name the destination. On a deep link the
-            // wordmark is redundant — the icon mark above already carries the
-            // identity — so the message is promoted into the h1 and the tagline
-            // becomes its English gloss.
-            var title = document.getElementById('title');
-            title.lang = 'th';
-            title.textContent = 'ลิงก์นี้เปิดในแอป GenieGenerate';
-            var msg = document.getElementById('message');
-            msg.lang = 'en';
-            msg.className = msg.className.replace('sub', 'gloss');
-            msg.textContent = 'This link opens in the GenieGenerate app.';
+            document.getElementById('ledeDefault').hidden = true;
+            document.getElementById('ledeLink').hidden = false;
 
             btn.setAttribute('data-shown', '');
             btn.addEventListener('click', function () {
