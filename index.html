@@ -136,6 +136,20 @@
             padding-top: 1.1rem;
             border-top: 1px solid var(--line);
         }
+        /* Browser escape hatch for credential links (see the script below).
+           Secondary to the app button by design, but always visible — the
+           person reading it may have no app and no other way in. */
+        .fallback { margin-top: 1.15rem; font-size: 0.95rem; }
+        .fallback a {
+            display: inline-block;
+            min-height: 44px;
+            padding: 0.7rem 0.35rem;
+            color: var(--brand-link);
+            font-weight: 600;
+            text-decoration-thickness: 1px;
+            text-underline-offset: 3px;
+        }
+        .fallback a:focus-visible { outline: 2px solid var(--brand-link); outline-offset: 2px; }
         footer {
             flex: none;
             text-align: center;
@@ -169,6 +183,9 @@
         <h1 class="reveal" style="--d: 0.08s">GenieGenerate</h1>
         <p id="message" class="reveal" style="--d: 0.16s">ชุมชนร้านค้าและกระเป๋าเงินดิจิทัลของคุณ<br>Your shops &amp; digital wallet community.</p>
         <button id="openApp" class="open-btn reveal" style="--d: 0.24s" type="button">เปิดในแอป GenieGenerate</button>
+        <p id="webFallback" class="fallback reveal" style="--d: 0.32s" hidden>
+            <a id="webFallbackLink" href="#">ตั้งรหัสผ่านใหม่ในเบราว์เซอร์<br>Reset in your browser</a>
+        </p>
         <p id="hint" class="hint" hidden>
             ถ้าแอปไม่เปิดขึ้นมา แสดงว่ายังไม่ได้ติดตั้งแอป GenieGenerate บนเครื่องนี้<br>
             If the app didn't open, GenieGenerate isn't installed on this device yet.
@@ -218,6 +235,20 @@
                 hint.hidden = false;
                 window.location.href = appUrl;
             });
+
+            // /reset-password is credential-bearing: whoever opens it is by
+            // definition locked out, and on desktop — or on a phone without
+            // the app — the scheme attempt below is a silent no-op, leaving
+            // them stranded on this page. So this one path always offers a
+            // real browser route. Built only from the exact-matched path, so
+            // no URL is ever minted from arbitrary input. No locale is baked
+            // in: app.geniegenerate.com negotiates it from Accept-Language
+            // (th → /th/reset-password) and preserves the query.
+            if (/^\/reset-password$/.test(path)) {
+                document.getElementById('webFallbackLink').href =
+                    'https://app.geniegenerate.com/reset-password' + search;
+                document.getElementById('webFallback').hidden = false;
+            }
 
             // Auto-attempt once: installed → OS prompts/opens the app;
             // not installed → silent no-op and the button/hint remain.
