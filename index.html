@@ -49,8 +49,6 @@
             --ink-3: #646C7A;      /* Lv3 tertiary text  */
             --line: #B9C0CB;       /* Lv4 borders        */
             --bg: #FEFEFE;
-            --glow: rgba(246, 146, 26, 0.09);
-            --grid: rgba(33, 38, 47, 0.06);
             /* Shape & type */
             --radius-md: 12px;
             --font-thai: 'IBM Plex Sans Thai';
@@ -64,29 +62,17 @@
                 --ink-3: #949CAA;  /* Lv3 dark */
                 --line: #343B46;   /* Lv4 dark */
                 --bg: #21262F;     /* Lv6 dark background */
-                --glow: rgba(246, 146, 26, 0.12);
-                --grid: rgba(234, 238, 239, 0.045);
             }
         }
         html, body { height: 100%; }
         body {
             font-family: var(--stack);
             color: var(--ink);
-            background-color: var(--bg);
-            background-image:
-                radial-gradient(640px 340px at 50% -120px, var(--glow), transparent 70%),
-                radial-gradient(var(--grid) 1px, transparent 1px);
-            background-size: auto, 24px 24px;
+            background: var(--bg);
             min-height: 100vh;
             min-height: 100svh;
             display: flex;
             flex-direction: column;
-        }
-        /* Thin brand rule along the top edge — the accent, used once, sharply. */
-        .brand-rule {
-            height: 3px;
-            flex: none;
-            background: linear-gradient(90deg, transparent, var(--brand) 18%, var(--brand) 82%, transparent);
         }
         main {
             flex: 1;
@@ -175,7 +161,6 @@
     </style>
 </head>
 <body>
-    <div class="brand-rule" aria-hidden="true"></div>
     <main>
         <div class="mark reveal" aria-hidden="true">
             <img src="/images/logo.png" alt="" width="400" height="400">
