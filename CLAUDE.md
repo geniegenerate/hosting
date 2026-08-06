@@ -6,7 +6,7 @@ Host for the GenieGenerate Apple AASA + Google assetlinks deep-link verification
 
 | Surface | What's serving it | Source |
 |---|---|---|
-| `https://www.geniegenerate.com/` | **Google Sites** (CNAME → `ghs.googlehosted.com`) | Not in any repo. Edit via Google Sites UI. |
+| `https://www.geniegenerate.com/` | **`web/apps/site`** via the prod Cloudflare Tunnel (cut over 2026-07-31; Google Sites retired and unpublished 08-06) | `web/apps/site` — ships in the `web_site` prod image, not this repo. |
 | `https://devlink.geniegenerate.com/` | **Cloudflare Pages** project `geniegenerate-wellknown` (since 2026-07-20) | **Auto-deploys from this repo on push.** |
 | `https://link.geniegenerate.com/` (prod) | **Cloudflare Pages** `geniegenerate-wellknown` (live since 2026-07-20) | Same project — prod AASA is live and verified through Apple's CDN. |
 | `https://staginglink.geniegenerate.com/` | **Cloudflare Pages** `geniegenerate-wellknown` (live since 2026-07-20) | Same project. |
@@ -19,7 +19,7 @@ Host for the GenieGenerate Apple AASA + Google assetlinks deep-link verification
 - `assetlinks.json` → exposed at `/.well-known/assetlinks.json` via `_redirects` rewrite. Same dotfile reason.
 - `_headers` → enforces `Content-Type: application/json` for the two files above (Google's assetlinks verifier requires this; Apple tolerates it).
 - `netlify.toml` → tells Netlify "no build, publish from repo root".
-- `index.html` + `images/` → vestigial landing page from before the Google Sites migration. Harmless; could be deleted, but kept so the apex of the Netlify deploy doesn't 404 if someone hits it.
+- `index.html` + `images/` → vestigial landing page predating the marketing-site moves. Harmless; kept so the Pages project's apex doesn't 404 if someone hits it directly.
 
 ## ✅ Apple enrollment done — AASA is live with the real Team ID (2026-07-17)
 
