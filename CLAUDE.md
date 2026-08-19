@@ -20,6 +20,7 @@ Host for the GenieGenerate Apple AASA + Google assetlinks deep-link verification
 - `_headers` → enforces `Content-Type: application/json` for the two files above (Google's assetlinks verifier requires this; Apple tolerates it).
 - `netlify.toml` → tells Netlify "no build, publish from repo root".
 - `index.html` + `images/` → vestigial landing page predating the marketing-site moves. Harmless; kept so the Pages project's apex doesn't 404 if someone hits it directly.
+- `robots.txt` → `Allow: /`, deliberately. All three subdomains are held out of the search index by `X-Robots-Tag: noindex` (`_headers`) plus a matching `<meta name="robots">` in `index.html`; a `Disallow` would block the crawler from ever READING that noindex and leave the URLs in the index as bare titles. Never add a `Disallow` line. Neither directive affects Apple's AASA CDN or Google's Digital Asset Links verifier — neither is a search crawler.
 
 ## ✅ Apple enrollment done — AASA is live with the real Team ID (2026-07-17)
 
