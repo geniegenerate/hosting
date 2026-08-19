@@ -1,3 +1,28 @@
+# Keep this whole host out of the search index.
+#
+# link/staginglink/devlink.geniegenerate.com are deep-link THRESHOLDS, not
+# content. Every path rewrites to the same index.html (see _redirects), so a
+# crawler finds one page duplicated across three hosts, all three competing in
+# the SERP with the real marketing site at www.geniegenerate.com. Google had
+# indexed link. and devlink. as standalone results for the query
+# "geniegenerate" — devlink. still serving placeholder copy ("Premium hosting
+# solutions... 99.9% uptime guarantee") from a revision that died long ago.
+#
+# `X-Robots-Tag`, not a robots.txt Disallow — same reasoning as the house rule
+# in web/apps/site/app/robots.ts: a crawler BLOCKED from fetching the page can
+# never read the noindex it was blocked from, and Google keeps a
+# blocked-but-linked URL in the index as a bare title. It has to be let in to
+# be told to leave. robots.txt here therefore says Allow.
+#
+# `/*` is required, not lazy: /shop/<uuid>, /v/<token>, /verify-email etc. all
+# serve the same index.html and are all indexable without it.
+#
+# Safe on the two well-known files below: Apple's CDN and Google's Digital
+# Asset Links verifier are not search crawlers and do not read robots
+# directives. This does NOT weaken Universal Links or App Links verification.
+/*
+  X-Robots-Tag: noindex
+
 # Apple and Google fetch the well-known files with strict expectations.
 # Google's assetlinks verifier requires Content-Type: application/json.
 # Apple's AASA verifier accepts application/json (and tolerates octet-stream

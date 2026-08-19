@@ -3,6 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- This host is a deep-link threshold, not content: every path rewrites
+         to this same page, so three subdomains would otherwise put three
+         copies of it in the SERP alongside www.geniegenerate.com. The
+         authoritative directive is the `X-Robots-Tag: noindex` header in
+         _headers; this tag is the copy that travels WITH the document, so a
+         host move (Netlify -> Cloudflare Pages once already) cannot silently
+         drop it. Crawling stays allowed — see robots.txt. -->
+    <meta name="robots" content="noindex">
     <meta name="description" content="GenieGenerate — your shops &amp; digital wallet community.">
     <meta name="theme-color" content="#FEFEFE" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#21262F" media="(prefers-color-scheme: dark)">

@@ -1,0 +1,16 @@
+# link / staginglink / devlink .geniegenerate.com — the deep-link landing host.
+#
+# Crawling is ALLOWED on purpose. Every response here carries
+# `X-Robots-Tag: noindex` (see _headers) and index.html carries a matching
+# <meta name="robots">. A crawler stopped by a Disallow could never read
+# either, and Google keeps a blocked-but-linked URL in the index as a bare
+# title with no description — which is worse than the problem. Let it in, then
+# tell it to leave.
+#
+# Do not add a Disallow line here.
+#
+# This file also exists to stop /robots.txt falling through the SPA rewrite in
+# _redirects and answering with 21 KB of HTML.
+
+User-agent: *
+Allow: /
