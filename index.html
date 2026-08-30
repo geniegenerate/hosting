@@ -432,12 +432,29 @@
             // /reset-password is credential-bearing: whoever opens it is by
             // definition locked out, and on desktop — or on a phone without
             // the app — the scheme attempt below is a silent no-op, leaving
-            // them stranded on this page. So this one path always offers a
+            // them stranded on this page. So on PROD this path always offers a
             // real browser route. Built only from the exact-matched path, so
             // no URL is ever minted from arbitrary input. No locale is baked
             // in: app.geniegenerate.com negotiates it from Accept-Language
             // (th → /th/reset-password) and preserves the query.
-            if (/^\/reset-password$/.test(path)) {
+            //
+            // PROD-ONLY, and that gate is the whole point. A reset token is
+            // minted by ONE environment's backend and exists only in that
+            // environment's DB, but this same page is served from all three
+            // link hosts. app.geniegenerate.com talks to PROD, so handing it a
+            // token from devlink/staginglink guarantees a lookup miss — the
+            // backend answers 401 RESET_TOKEN_INVALID and the web app renders
+            // "a newer reset email replaced this link". Nothing was replaced;
+            // the token was posted to a backend that never issued it, and the
+            // copy sends the reader hunting for an email that does not exist.
+            // There is no public dev/staging web app, and those backends are
+            // LAN-only, so off-prod the ONLY completion path is the installed
+            // app — which the button above already offers. Offering no browser
+            // link is strictly better than offering one that always lies.
+            // Exact-match the host so anything unrecognised (a *.pages.dev
+            // preview, a future host) fails closed to the app-only path.
+            if (/^\/reset-password$/.test(path) &&
+                location.hostname === 'link.geniegenerate.com') {
                 var web = document.getElementById('webFallbackLink');
                 web.href = 'https://app.geniegenerate.com/reset-password' + search;
                 web.setAttribute('data-shown', '');
