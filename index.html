@@ -349,6 +349,15 @@
             </a>
         </div>
 
+        <!-- Shown only when this link host has no mapped webapp (staging today,
+             or a preview host). The browser route is genuinely unavailable
+             there, and saying so beats hiding the control silently — a missing
+             affordance with no explanation reads as a broken page. -->
+        <p id="noWebRoute" class="hint" hidden aria-live="polite">
+            <span data-l="en">This is a non-production link, so there is no browser route for it — open it in the GenieGenerate app for that environment.</span>
+            <span data-l="th">ลิงก์นี้ไม่ใช่ลิงก์เวอร์ชันใช้งานจริง จึงไม่มีช่องทางเปิดผ่านเบราว์เซอร์ กรุณาเปิดในแอป GenieGenerate ของสภาพแวดล้อมนั้น</span>
+        </p>
+
         <p id="hint" class="hint" hidden aria-live="polite">
             <span data-l="en">If the app didn't open, GenieGenerate isn't installed on this device yet.</span>
             <span data-l="th">ถ้าแอปไม่เปิดขึ้นมา แสดงว่ายังไม่ได้ติดตั้งแอป GenieGenerate บนเครื่องนี้</span>
@@ -432,32 +441,53 @@
             // /reset-password is credential-bearing: whoever opens it is by
             // definition locked out, and on desktop — or on a phone without
             // the app — the scheme attempt below is a silent no-op, leaving
-            // them stranded on this page. So on PROD this path always offers a
-            // real browser route. Built only from the exact-matched path, so
-            // no URL is ever minted from arbitrary input. No locale is baked
-            // in: app.geniegenerate.com negotiates it from Accept-Language
-            // (th → /th/reset-password) and preserves the query.
+            // them stranded on this page. So this path always offers a real
+            // browser route. Built only from the exact-matched path, so no URL
+            // is ever minted from arbitrary input. No locale is baked in: the
+            // webapp negotiates it from Accept-Language (th → /th/reset-password)
+            // and preserves the query.
             //
-            // PROD-ONLY, and that gate is the whole point. A reset token is
-            // minted by ONE environment's backend and exists only in that
-            // environment's DB, but this same page is served from all three
-            // link hosts. app.geniegenerate.com talks to PROD, so handing it a
-            // token from devlink/staginglink guarantees a lookup miss — the
-            // backend answers 401 RESET_TOKEN_INVALID and the web app renders
-            // "a newer reset email replaced this link". Nothing was replaced;
-            // the token was posted to a backend that never issued it, and the
-            // copy sends the reader hunting for an email that does not exist.
-            // There is no public dev/staging web app, and those backends are
-            // LAN-only, so off-prod the ONLY completion path is the installed
-            // app — which the button above already offers. Offering no browser
-            // link is strictly better than offering one that always lies.
-            // Exact-match the host so anything unrecognised (a *.pages.dev
-            // preview, a future host) fails closed to the app-only path.
-            if (/^\/reset-password$/.test(path) &&
-                location.hostname === 'link.geniegenerate.com') {
-                var web = document.getElementById('webFallbackLink');
-                web.href = 'https://app.geniegenerate.com/reset-password' + search;
-                web.setAttribute('data-shown', '');
+            // The origin is resolved PER ENVIRONMENT, never hardcoded. A reset
+            // token is minted by one environment's backend and exists only in
+            // that environment's DB, but this same page is served from all
+            // three link hosts. Hardcoding app.geniegenerate.com posted a dev
+            // token to the PROD backend, which answered 401
+            // RESET_TOKEN_INVALID, and the web app rendered "a newer reset
+            // email replaced this link" — a confident lie that sent the reader
+            // hunting for an email that was never sent.
+            //
+            // This is the SAME defect, in a second surface, that
+            // backend/deploy/prod/paste-2026-08-01-webapp-base-url.md already
+            // recorded: a hardcoded app.geniegenerate.com "is what made the dev
+            // site link into production". There the cure was to resolve the
+            // webapp origin per environment (APP_WEBAPP_BASE_URL, served as
+            // `webapp_base_url`); web/apps/site reads it. A static page cannot
+            // read that config, but its OWN hostname is the same environment
+            // discriminator, so it maps locally. Deleting the affordance is NOT
+            // the cure — the link being wrong per environment is.
+            //
+            // Values mirror APP_WEBAPP_BASE_URL for each environment. Staging
+            // has no deployed webapp yet, so it is deliberately absent rather
+            // than guessed; an unmapped host (staging, a *.pages.dev preview, a
+            // future host) falls back to the app-only path instead of borrowing
+            // another environment's origin. Dev maps to lane A; devlink cannot
+            // distinguish lane A from lane B, so a lane-B developer edits the
+            // port by hand — a visibly wrong port beats a silently wrong DB.
+            var WEBAPP_ORIGIN = {
+                'link.geniegenerate.com': 'https://app.geniegenerate.com',
+                'devlink.geniegenerate.com': 'http://localhost:3020'
+            };
+            if (/^\/reset-password$/.test(path)) {
+                var origin = WEBAPP_ORIGIN[location.hostname];
+                if (origin) {
+                    var web = document.getElementById('webFallbackLink');
+                    web.href = origin + '/reset-password' + search;
+                    web.setAttribute('data-shown', '');
+                } else {
+                    // No mapped webapp: say so, rather than silently hiding the
+                    // control and leaving the reader to wonder where it went.
+                    document.getElementById('noWebRoute').hidden = false;
+                }
             }
 
             // Auto-attempt once: installed → OS prompts/opens the app;
