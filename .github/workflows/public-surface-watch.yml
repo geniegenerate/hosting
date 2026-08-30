@@ -1,0 +1,59 @@
+name: public-surface watch
+
+# Weekly watch over the four public surfaces that fail SILENTLY: the Android
+# assetlinks fingerprint, the Apple AASA, the TLS certs and the domain registration.
+# Break any of them and NOTHING errors — deep links quietly open in the browser and
+# passkeys quietly stop associating, on every Play install, until someone notices by
+# accident. That is the whole reason this job exists.
+#
+# It lives HERE, in this public repo, rather than alongside the app, for one reason:
+# Actions minutes are unlimited and unbilled on public repos, whereas a private repo
+# draws on a metered monthly allowance. A watch in a metered repo stops the moment that
+# allowance is exhausted — silently, and most likely during a heavy shipping month,
+# i.e. exactly when a fingerprint is most likely to have just broken. Free-and-unlimited
+# is the only option here that cannot die of thirst.
+#
+# The one cost of living in a quiet repo: GitHub disables scheduled workflows after
+# 60 days of repository inactivity. That hole is covered from the other side — the
+# monthly `security.yml` in mobile-app asserts this workflow has run in the last 14
+# days and fails if it has not. Watchman, and watchman-of-the-watchman.
+
+on:
+  workflow_dispatch: # run it by hand any time from the Actions tab
+  schedule:
+    # Mondays 01:17 UTC ≈ 08:17 ICT. Odd minute on purpose: GitHub's scheduler is
+    # best-effort and the top of the hour is the congested slot, where runs get
+    # delayed or dropped outright.
+    - cron: '17 1 * * 1'
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  watch:
+    name: four public surfaces
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # Green exits 0 and the job passes silently — deliberately no notification, because
+      # a weekly all-clear trains the reader to ignore the alert. WARN exits 1 and CRITICAL
+      # exits 2; both fail the job, which is what GitHub emails on. That is the entire
+      # notification mechanism: no secrets, no API keys, no mail plumbing.
+      - name: watch four public surfaces
+        shell: bash
+        run: |
+          set +e   # reach the summary even when the script fails
+          .github/scripts/public_surface_watch.sh 2>&1 | tee /tmp/watch.log
+          rc=${PIPESTATUS[0]}   # NOT $? — that would be tee's status, i.e. always 0
+          {
+            echo "### public-surface watch"
+            echo '```'
+            cat /tmp/watch.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit "$rc"
