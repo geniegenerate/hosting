@@ -15,7 +15,7 @@ Host for the GenieGenerate Apple AASA + Google assetlinks deep-link verification
 
 ## What this repo serves (and only this)
 
-- `apple-app-site-association` → exposed at `/.well-known/apple-app-site-association` via `_redirects` rewrite. Stored at repo root because Netlify (and Cloudflare Pages) exclude dotfiles/dotdirs from the build artifact.
+- `apple-app-site-association` → exposed at `/.well-known/apple-app-site-association` via `_redirects` rewrite. Stored at repo root, with the rewrite, because that is the arrangement that is live and verified — **do not "simplify" it into a real `.well-known/` dir.** ⚠️ The reason recorded here previously ("Netlify and Cloudflare Pages exclude dotfiles/dotdirs from the build artifact") is **false for Cloudflare Pages** — `.github/` is demonstrably served (2026-08-30). The rewrite arrangement stays because it is proven working against Apple's CDN and Google's verifier, not because dotdirs are excluded.
 - `assetlinks.json` → exposed at `/.well-known/assetlinks.json` via `_redirects` rewrite. Same dotfile reason.
 - `_headers` → enforces `Content-Type: application/json` for the two files above (Google's assetlinks verifier requires this; Apple tolerates it).
 - `netlify.toml` → tells Netlify "no build, publish from repo root".
@@ -133,10 +133,14 @@ secrets, no mail plumbing).
 They are deliberately held apart from the served files so the script is an independent oracle —
 if it read its expectations out of the file it is checking, it could never detect drift.
 
-⚠️ **The script lives under `.github/` on purpose.** Pages publishes from the repo root and
-excludes dotdirs (the same rule that keeps `assetlinks.json` at root rather than in
-`.well-known/`), so a top-level `scripts/` dir would be served at
-`https://link.geniegenerate.com/scripts/`.
+⚠️ **Cloudflare Pages SERVES `.github/` — verified 2026-08-30.** Both the script and the
+workflow YAML return their real contents at `https://link.geniegenerate.com/.github/...`.
+Nothing sensitive is in them (the fingerprint and Team ID are public by design — they are
+literally the contents of the two files this repo serves), and the repo is public on GitHub
+anyway, so this is untidy rather than dangerous. **But never put a secret under `.github/`
+believing it is hidden.** Probe it by CONTENT, not status code: this site has a catch-all that
+returns `index.html` with HTTP 200 for *any* nonexistent path, so a 200 proves nothing on its
+own — always compare against a path that cannot exist.
 
 ⚠️ **GitHub disables scheduled workflows after 60 days of repository inactivity**, and this repo
 gets edited about twice a year. A disabled watch is indistinguishable from a passing one — both
