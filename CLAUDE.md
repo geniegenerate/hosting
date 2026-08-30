@@ -98,10 +98,51 @@ On a physical iOS device (simulator won't verify Universal Links): tap a `https:
 
 ## Working in this repo (the autonomous loop, minus what doesn't apply)
 
-- **No `docker compose`, no dev server, no test suite.** The "loop" is: edit → push → wait for Netlify deploy webhook → curl-verify.
+- **No `docker compose`, no dev server, no unit tests.** The "loop" is: edit → push → wait for the
+  Pages deploy → curl-verify. The one piece of automation is the public-surface watch below;
+  run it by hand after any edit here — it IS the curl-verify step, already written down.
 - **Lane awareness**: no lane B (no parallel stack needed for static JSON).
 - **Done-gate**: verification commands above. Failing to run them post-push is how the AASA stayed broken from `3da1799` (webcredentials) through `4d20845` (Android App Links) through my own `5352b9d`+`cd6ebf8` (the redirect fix) — all four commits shipped without ever verifying the file was live.
 - **Public repo**: world-readable. Never commit credentials, internal URLs, or anything not intended for public visitors.
+
+## Public-surface watch (the only automation in this repo)
+
+`.github/workflows/public-surface-watch.yml` runs `.github/scripts/public_surface_watch.sh`
+every Monday (08:17 ICT) and on demand from the Actions tab. It checks the four things here
+that **fail silently** — break any one and nothing errors anywhere:
+
+| # | Check | What breaks if it drifts |
+|---|---|---|
+| 1 | TLS certs for `geniegenerate.com`, `app.`, `link.`, `verify.` | site down at expiry; auto-renewal failures are invisible until then |
+| 2 | `assetlinks.json` carries the **Play App Signing** fp on `com.geniegenerate.app` | Android App Links + passkeys silently stop associating on every Play install |
+| 3 | AASA: 200, `application/json`, all appIDs on Team `RQ4GFMSFAQ` | iOS Universal Links + passkeys silently stop associating |
+| 4 | `geniegenerate.com` registration expiry (Verisign RDAP) | domain lapse |
+
+**Run it by hand any time** — no arguments, no credentials, works on macOS and Linux:
+
+```bash
+.github/scripts/public_surface_watch.sh ; echo "exit=$?"
+```
+
+Exit `0` = green, `1` = WARN, `2` = CRITICAL. **Green is deliberately silent** — the job passes
+and GitHub says nothing, because a weekly all-clear trains you to ignore the alert. A non-zero
+exit fails the job, and GitHub's own failure email is the entire notification mechanism (no
+secrets, no mail plumbing).
+
+⚠️ **Editing `assetlinks.json` or the AASA means editing the expected values in that script too.**
+They are deliberately held apart from the served files so the script is an independent oracle —
+if it read its expectations out of the file it is checking, it could never detect drift.
+
+⚠️ **The script lives under `.github/` on purpose.** Pages publishes from the repo root and
+excludes dotdirs (the same rule that keeps `assetlinks.json` at root rather than in
+`.well-known/`), so a top-level `scripts/` dir would be served at
+`https://link.geniegenerate.com/scripts/`.
+
+⚠️ **GitHub disables scheduled workflows after 60 days of repository inactivity**, and this repo
+gets edited about twice a year. A disabled watch is indistinguishable from a passing one — both
+are silent. So liveness is asserted from *outside*: the monthly `security.yml` in the mobile-app
+repo fails if this workflow has not completed a run in 14 days. If you ever see that alarm, come
+here and re-enable the schedule in the Actions tab.
 
 ## Git Workflow
 
