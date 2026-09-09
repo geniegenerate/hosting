@@ -1,7 +1,8 @@
 name: public-surface watch
 
-# Weekly watch over the four public surfaces that fail SILENTLY: the Android
-# assetlinks fingerprint, the Apple AASA, the TLS certs and the domain registration.
+# Weekly watch over the five public surfaces that fail SILENTLY: the Android
+# assetlinks fingerprint, the Apple AASA, the TLS certs, the domain registration and
+# the RFC 9116 security.txt (its Expires line rots silently).
 # Break any of them and NOTHING errors — deep links quietly open in the browser and
 # passkeys quietly stop associating, on every Play install, until someone notices by
 # accident. That is the whole reason this job exists.
@@ -35,7 +36,7 @@ permissions:
 
 jobs:
   watch:
-    name: four public surfaces
+    name: five public surfaces
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -44,7 +45,7 @@ jobs:
       # a weekly all-clear trains the reader to ignore the alert. WARN exits 1 and CRITICAL
       # exits 2; both fail the job, which is what GitHub emails on. That is the entire
       # notification mechanism: no secrets, no API keys, no mail plumbing.
-      - name: watch four public surfaces
+      - name: watch five public surfaces
         shell: bash
         run: |
           set +e   # reach the summary even when the script fails

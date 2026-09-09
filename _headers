@@ -35,3 +35,9 @@
 /.well-known/assetlinks.json
   Content-Type: application/json
   Cache-Control: public, max-age=300
+
+# RFC 9116 requires text/plain; researchers' tooling checks the Expires line, so
+# keep the cache short enough that a refreshed file is seen the same day.
+/.well-known/security.txt
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=3600

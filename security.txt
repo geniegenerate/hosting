@@ -1,0 +1,8 @@
+# GenieGenerate LLC — how to report a security issue (RFC 9116).
+# Coordinated disclosure, acknowledgement target 7 days, no paid bounty.
+Contact: mailto:contact@geniegenerate.com
+Expires: 2027-09-01T00:00:00.000Z
+Preferred-Languages: en, th
+Canonical: https://www.geniegenerate.com/.well-known/security.txt
+Canonical: https://link.geniegenerate.com/.well-known/security.txt
+Policy: https://www.geniegenerate.com/legal/trust

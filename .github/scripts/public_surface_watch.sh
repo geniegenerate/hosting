@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# public-surface-watch.sh — weekly watch over the four public surfaces that fail SILENTLY.
+# public-surface-watch.sh — weekly watch over the five public surfaces that fail SILENTLY.
 #
 # Why this exists: assetlinks.json and the AASA are load-bearing for Android App Links,
 # iOS Universal Links and passkey/credential-manager association. If the prod SHA-256
@@ -14,10 +14,10 @@
 # Runs identically on macOS (BSD date) and ubuntu-latest (GNU date). No secrets, no
 # credentials, no private hosts: every surface it touches is already public.
 #
-# Lives under .github/ ON PURPOSE. Cloudflare Pages publishes this repo from the root,
-# and dotdirs are excluded from the build artifact — the same rule that forces
-# assetlinks.json to sit at repo root instead of in .well-known/ (see CLAUDE.md). A
-# scripts/ dir at root would be served at https://link.geniegenerate.com/scripts/.
+# Lives under .github/ by convention. NOTE (2026-08-30): Cloudflare Pages does NOT
+# exclude dotdirs — this script is itself served at
+# https://link.geniegenerate.com/.github/scripts/public_surface_watch.sh. Nothing here is
+# secret, and that must stay true (see CLAUDE.md).
 #
 # Run it by hand any time:  .github/scripts/public_surface_watch.sh ; echo $?
 
@@ -57,7 +57,7 @@ echo "== public-surface watch $(date -u '+%Y-%m-%dT%H:%M:%SZ') =="
 
 # ---------------------------------------------------------------- 1. TLS certificates
 echo
-echo "[1/4] TLS certificates"
+echo "[1/5] TLS certificates"
 for host in "${TLS_HOSTS[@]}"; do
     cert=$(openssl s_client -connect "$host:443" -servername "$host" </dev/null 2>/dev/null \
            | openssl x509 -noout -enddate -issuer 2>/dev/null)
@@ -88,7 +88,7 @@ done
 
 # ------------------------------------------------------- 2. assetlinks.json (Android)
 echo
-echo "[2/4] assetlinks.json — Play App Signing fingerprint"
+echo "[2/5] assetlinks.json — Play App Signing fingerprint"
 al_url="https://$WELLKNOWN_HOST/.well-known/assetlinks.json"
 al_body=$(mktemp)
 al_code=$(curl -sS -o "$al_body" -w '%{http_code}' --max-time 20 "$al_url" 2>/dev/null)
@@ -128,7 +128,7 @@ rm -f "$al_body"
 
 # ------------------------------------------------------------------- 3. AASA (Apple)
 echo
-echo "[3/4] apple-app-site-association — Team ID + content type"
+echo "[3/5] apple-app-site-association — Team ID + content type"
 aasa_url="https://$WELLKNOWN_HOST/.well-known/apple-app-site-association"
 aasa_body=$(mktemp)
 aasa_meta=$(curl -sS -o "$aasa_body" -w '%{http_code} %{content_type}' --max-time 20 "$aasa_url" 2>/dev/null)
@@ -166,7 +166,7 @@ rm -f "$aasa_body"
 
 # ------------------------------------------------------------- 4. domain registration
 echo
-echo "[4/4] domain registration"
+echo "[4/5] domain registration"
 # rdap.org has proven unreachable from some networks; the Verisign .com endpoint is
 # authoritative for .com and reachable both locally and from GitHub runners.
 rdap=$(curl -sS --max-time 20 "https://rdap.verisign.com/com/v1/domain/$APEX" 2>/dev/null)
@@ -184,10 +184,38 @@ else
     fi
 fi
 
+# ----------------------------------------------------------- 5. security.txt (RFC 9116)
+echo
+echo "[5/5] security.txt — contact line + expiry"
+# ☠️ This host answers 200 with index.html for ANY path, so a status code proves nothing.
+# Assert by CONTENT, and prove the assertion can fail: a bogus sibling path must NOT
+# carry the Contact line. If it does, the rewrite is a catch-all and the check is void.
+readonly ST_CONTACT="Contact: mailto:contact@geniegenerate.com"
+readonly ST_WARN=45 ST_CRIT=14
+st_url="https://$WELLKNOWN_HOST/.well-known/security.txt"
+st_body=$(curl -sS --max-time 20 "$st_url" 2>/dev/null)
+ctl_body=$(curl -sS --max-time 20 "https://$WELLKNOWN_HOST/.well-known/security.txt.negative-control" 2>/dev/null)
+if printf '%s\n' "$ctl_body" | grep -qxF "$ST_CONTACT"; then
+    crit "security.txt negative control FAILED — a bogus path also serves the Contact line; the content check cannot discriminate"
+elif ! printf '%s\n' "$st_body" | grep -qxF "$ST_CONTACT"; then
+    crit "security.txt at $st_url is missing or lacks '$ST_CONTACT' (researchers will find nobody to tell)"
+else
+    note "Contact line present; bogus sibling path does not carry it (negative control passed)"
+    st_exp=$(printf '%s\n' "$st_body" | grep '^Expires:' | head -1 | awk '{print $2}')
+    if [[ -z $st_exp ]]; then
+        crit "security.txt has no Expires line — RFC 9116 requires one and tooling treats the file as invalid"
+    elif ! left=$(days_until "$st_exp"); then
+        crit "security.txt Expires '$st_exp' could not be parsed"
+    elif (( left < ST_CRIT )); then crit "security.txt expires in ${left}d ($st_exp) — refresh security.txt in this repo AND web/apps/site/public/.well-known/"
+    elif (( left < ST_WARN )); then warn "security.txt expires in ${left}d ($st_exp) — refresh both copies"
+    else note "security.txt ${left}d remaining (expires $st_exp)"
+    fi
+fi
+
 # ------------------------------------------------------------------------- verdict
 echo
 if (( worst == 0 )); then
-    echo "== GREEN — all four surfaces healthy. No action, no notification. =="
+    echo "== GREEN — all five surfaces healthy. No action, no notification. =="
 else
     echo "== $( ((worst==2)) && echo CRITICAL || echo WARN ) — ${#FINDINGS[@]} finding(s) =="
     printf '%s\n' "${FINDINGS[@]}"
