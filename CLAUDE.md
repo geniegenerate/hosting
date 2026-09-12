@@ -152,3 +152,25 @@ here and re-enable the schedule in the Actions tab.
 ## Git Workflow
 
 Direct-push to `main` (Netlify auto-deploys on push). Conventional commits. **Never** add Claude credit to commit messages.
+
+## The secret gate — one-time per clone, and NOT in the tree
+
+Every other repo keeps `scripts/lib/gitleaks_gate.sh` in the working tree. This one must not:
+Cloudflare Pages serves this repo **verbatim** — `curl https://link.geniegenerate.com/CLAUDE.md`
+returns this file, and `netlify.toml` likewise — so anything committed here is published on all
+three deep-link hosts. The gate therefore lives beside the hooks, inside `.git/`, which Pages
+never deploys.
+
+The script is byte-identical to the copy carried by mobile-app, backend, admin, web, marketing,
+company, design-system, blockchain and reward-calculator, where its 13-assertion self-test runs;
+here it is proven by the same mutation control (a staged `AKIA…` string refused, HEAD unmoved).
+Note the hooks call it **without** an `if [ -x … ]` guard, unlike the other repos: a script that
+has gone missing must make the hook error, not pass silently.
+
+```bash
+h="$(git rev-parse --git-common-dir)/hooks"
+cp ../mobile-app/scripts/lib/gitleaks_gate.sh "$h/gitleaks_gate.sh" && chmod +x "$h/gitleaks_gate.sh"
+printf '#!/bin/sh\n"$(git rev-parse --git-common-dir)/hooks/gitleaks_gate.sh" staged || exit 1\n' > "$h/pre-commit"
+printf '#!/bin/sh\n"$(git rev-parse --git-common-dir)/hooks/gitleaks_gate.sh" push || exit 1\n' > "$h/pre-push"
+chmod +x "$h/pre-commit" "$h/pre-push"
+```
