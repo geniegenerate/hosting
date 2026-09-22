@@ -8,5 +8,11 @@
 # security.txt (RFC 9116) — same arrangement: stored at root, exposed at its canonical path.
 /.well-known/security.txt                 /security.txt                 200
 
+# Explainer deep links (mobile home banner, 2026-09-22): the app claims /rewards/* via the
+# AASA above / the Android host-wide intent filter. A visitor WITHOUT the app (or an iOS
+# install that has not refetched the AASA yet) must land on the web twin, never on the SPA
+# fallback below. :splat keeps the sub-path. One rule serves all three hosts of this project.
+/rewards/*                                https://app.geniegenerate.com/rewards/:splat  302
+
 # SPA fallback — keep last so the rules above match first.
 /*                                        /index.html                   200
