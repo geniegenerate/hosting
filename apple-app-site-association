@@ -1,44 +1,47 @@
 {
-    "applinks": {
-        "apps": [],
-        "details": [
-            {
-                "appID": "RQ4GFMSFAQ.com.geniegenerate.app",
-                "paths": [
-                    "/verify-email*",
-                    "/reset-password*",
-                    "/login*",
-                    "/shop/*",
-                    "/v/*"
-                ]
-            },
-            {
-                "appID": "RQ4GFMSFAQ.com.geniegenerate.app.staging",
-                "paths": [
-                    "/verify-email*",
-                    "/reset-password*",
-                    "/login*",
-                    "/shop/*",
-                    "/v/*"
-                ]
-            },
-            {
-                "appID": "RQ4GFMSFAQ.com.geniegenerate.app.dev",
-                "paths": [
-                    "/verify-email*",
-                    "/reset-password*",
-                    "/login*",
-                    "/shop/*",
-                    "/v/*"
-                ]
-            }
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "RQ4GFMSFAQ.com.geniegenerate.app",
+        "paths": [
+          "/verify-email*",
+          "/reset-password*",
+          "/login*",
+          "/shop/*",
+          "/v/*",
+          "/rewards/*"
         ]
-    },
-    "webcredentials": {
-        "apps": [
-            "RQ4GFMSFAQ.com.geniegenerate.app",
-            "RQ4GFMSFAQ.com.geniegenerate.app.staging",
-            "RQ4GFMSFAQ.com.geniegenerate.app.dev"
+      },
+      {
+        "appID": "RQ4GFMSFAQ.com.geniegenerate.app.staging",
+        "paths": [
+          "/verify-email*",
+          "/reset-password*",
+          "/login*",
+          "/shop/*",
+          "/v/*",
+          "/rewards/*"
         ]
-    }
+      },
+      {
+        "appID": "RQ4GFMSFAQ.com.geniegenerate.app.dev",
+        "paths": [
+          "/verify-email*",
+          "/reset-password*",
+          "/login*",
+          "/shop/*",
+          "/v/*",
+          "/rewards/*"
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": [
+      "RQ4GFMSFAQ.com.geniegenerate.app",
+      "RQ4GFMSFAQ.com.geniegenerate.app.staging",
+      "RQ4GFMSFAQ.com.geniegenerate.app.dev"
+    ]
+  }
 }
