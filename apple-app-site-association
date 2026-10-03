@@ -10,7 +10,8 @@
           "/login*",
           "/shop/*",
           "/v/*",
-          "/rewards/*"
+          "/rewards/*",
+          "/news/*"
         ]
       },
       {
@@ -21,7 +22,8 @@
           "/login*",
           "/shop/*",
           "/v/*",
-          "/rewards/*"
+          "/rewards/*",
+          "/news/*"
         ]
       },
       {
@@ -32,7 +34,8 @@
           "/login*",
           "/shop/*",
           "/v/*",
-          "/rewards/*"
+          "/rewards/*",
+          "/news/*"
         ]
       }
     ]
