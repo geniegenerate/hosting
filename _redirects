@@ -14,5 +14,10 @@
 # fallback below. :splat keeps the sub-path. One rule serves all three hosts of this project.
 /rewards/*                                https://app.geniegenerate.com/rewards/:splat  302
 
+# News articles (announcements v2 / newsroom, 2026-10-03): the app claims /news/* and opens its
+# native reader. A visitor without the app lands on the public article on the marketing site,
+# which resolves the locale itself (/news/<slug> → /<locale>/news/<slug>).
+/news/*                                   https://www.geniegenerate.com/news/:splat     302
+
 # SPA fallback — keep last so the rules above match first.
 /*                                        /index.html                   200
