@@ -21,8 +21,8 @@
 
 # Agent notes are never served from this public repo. Rules apply even when an asset matches,
 # so these answer with the fallback page whatever a cache still holds for the path.
-/CLAUDE.md                                /index.html                   200
-/AGENTS.md                                /index.html                   200
+/CLAUDE.md                                /                   200
+/AGENTS.md                                /                   200
 
 # SPA fallback — keep last so the rules above match first.
 /*                                        /index.html                   200
