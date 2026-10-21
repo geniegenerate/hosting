@@ -1,0 +1,6 @@
+# Agent notes are private (company/operations/deployment/HOSTING_REPO.md). This repo is
+# public and Pages serves its root, so none of these may ever be committed here.
+CLAUDE.md
+CLAUDE.local.md
+AGENTS.md
+.claude/

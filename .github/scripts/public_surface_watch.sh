@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# public-surface-watch.sh — weekly watch over the five public surfaces that fail SILENTLY.
+# public-surface-watch.sh — weekly watch over the six public surfaces that fail SILENTLY.
 #
 # Why this exists: assetlinks.json and the AASA are load-bearing for Android App Links,
 # iOS Universal Links and passkey/credential-manager association. If the prod SHA-256
@@ -17,7 +17,7 @@
 # Lives under .github/ by convention. NOTE (2026-08-30): Cloudflare Pages does NOT
 # exclude dotdirs — this script is itself served at
 # https://link.geniegenerate.com/.github/scripts/public_surface_watch.sh. Nothing here is
-# secret, and that must stay true (see CLAUDE.md).
+# secret, and that must stay true.
 #
 # Run it by hand any time:  .github/scripts/public_surface_watch.sh ; echo $?
 
@@ -57,7 +57,7 @@ echo "== public-surface watch $(date -u '+%Y-%m-%dT%H:%M:%SZ') =="
 
 # ---------------------------------------------------------------- 1. TLS certificates
 echo
-echo "[1/5] TLS certificates"
+echo "[1/6] TLS certificates"
 for host in "${TLS_HOSTS[@]}"; do
     cert=$(openssl s_client -connect "$host:443" -servername "$host" </dev/null 2>/dev/null \
            | openssl x509 -noout -enddate -issuer 2>/dev/null)
@@ -88,7 +88,7 @@ done
 
 # ------------------------------------------------------- 2. assetlinks.json (Android)
 echo
-echo "[2/5] assetlinks.json — Play App Signing fingerprint"
+echo "[2/6] assetlinks.json — Play App Signing fingerprint"
 al_url="https://$WELLKNOWN_HOST/.well-known/assetlinks.json"
 al_body=$(mktemp)
 al_code=$(curl -sS -o "$al_body" -w '%{http_code}' --max-time 20 "$al_url" 2>/dev/null)
@@ -128,7 +128,7 @@ rm -f "$al_body"
 
 # ------------------------------------------------------------------- 3. AASA (Apple)
 echo
-echo "[3/5] apple-app-site-association — Team ID + content type"
+echo "[3/6] apple-app-site-association — Team ID + content type"
 aasa_url="https://$WELLKNOWN_HOST/.well-known/apple-app-site-association"
 aasa_body=$(mktemp)
 aasa_meta=$(curl -sS -o "$aasa_body" -w '%{http_code} %{content_type}' --max-time 20 "$aasa_url" 2>/dev/null)
@@ -166,7 +166,7 @@ rm -f "$aasa_body"
 
 # ------------------------------------------------------------- 4. domain registration
 echo
-echo "[4/5] domain registration"
+echo "[4/6] domain registration"
 # rdap.org has proven unreachable from some networks; the Verisign .com endpoint is
 # authoritative for .com and reachable both locally and from GitHub runners.
 rdap=$(curl -sS --max-time 20 "https://rdap.verisign.com/com/v1/domain/$APEX" 2>/dev/null)
@@ -186,7 +186,7 @@ fi
 
 # ----------------------------------------------------------- 5. security.txt (RFC 9116)
 echo
-echo "[5/5] security.txt — contact line + expiry"
+echo "[5/6] security.txt — contact line + expiry"
 # ☠️ This host answers 200 with index.html for ANY path, so a status code proves nothing.
 # Assert by CONTENT, and prove the assertion can fail: a bogus sibling path must NOT
 # carry the Contact line. If it does, the rewrite is a catch-all and the check is void.
@@ -212,10 +212,29 @@ else
     fi
 fi
 
+# ------------------------------------------------- 6. no agent notes on the public host
+echo
+echo "[6/6] agent notes are not served"
+# This repo is public and Pages publishes its root, so any agent file committed here is
+# served to the world (CLAUDE.md was, until 2026-10-21). The host answers 200 with
+# index.html for ANY path, so judge by CONTENT: a real file is anything that is not the
+# fallback page. Negative control: a bogus path must come back as that fallback.
+fallback_ok() { printf '%s' "$1" | head -c 200 | grep -qi '<!doctype html'; }
+if ! fallback_ok "$(curl -sS --max-time 20 "https://$WELLKNOWN_HOST/agent-notes.negative-control" 2>/dev/null)"; then
+    crit "agent-notes negative control FAILED — a bogus path is not the HTML fallback; the check cannot discriminate"
+else
+    served=()
+    for p in CLAUDE.md CLAUDE.local.md AGENTS.md .claude/settings.json .claude/settings.local.json; do
+        fallback_ok "$(curl -sS --max-time 20 "https://$WELLKNOWN_HOST/$p" 2>/dev/null)" || served+=("$p")
+    done
+    if (( ${#served[@]} )); then crit "agent notes served publicly: ${served[*]} — remove from the repo (public repos carry none)"
+    else note "no agent file is served (negative control passed)"; fi
+fi
+
 # ------------------------------------------------------------------------- verdict
 echo
 if (( worst == 0 )); then
-    echo "== GREEN — all five surfaces healthy. No action, no notification. =="
+    echo "== GREEN — all six surfaces healthy. No action, no notification. =="
 else
     echo "== $( ((worst==2)) && echo CRITICAL || echo WARN ) — ${#FINDINGS[@]} finding(s) =="
     printf '%s\n' "${FINDINGS[@]}"
