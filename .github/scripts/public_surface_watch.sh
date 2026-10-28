@@ -116,6 +116,16 @@ else
         else
             note "$PROD_PACKAGE carries the Play App Signing fingerprint"
         fi
+        # link. is prod's passkey RP ID host: it must vouch for NOTHING but the Play-signed
+        # prod package. Extra entries (the debug-key .dev/.staging builds) hand prod saved
+        # passwords and passkeys to any APK signed with that key (mobile-app todos/0015 #22).
+        extra=$(jq -r --arg p "$PROD_PACKAGE" \
+                '.[] | select(.target.package_name != $p) | .target.package_name' "$al_body")
+        if [[ -n $extra ]]; then
+            crit "assetlinks.json on $WELLKNOWN_HOST also delegates to $(printf '%s' "$extra" | paste -sd' ' -) — prod must list $PROD_PACKAGE only"
+        else
+            note "$WELLKNOWN_HOST delegates to $PROD_PACKAGE only"
+        fi
         relations=$(jq -r --arg p "$PROD_PACKAGE" \
                     '.[] | select(.target.package_name == $p) | .relation[]' "$al_body")
         for rel in delegate_permission/common.handle_all_urls delegate_permission/common.get_login_creds; do

@@ -5,6 +5,9 @@
 # NOT because Pages hides dotdirs (it does not; verified 2026-08-30).
 /.well-known/apple-app-site-association   /apple-app-site-association   200
 /.well-known/assetlinks.json              /assetlinks.json              200
+# ^ fallback only: functions/.well-known/assetlinks.json.js answers this path first (a
+#   Function wins over _redirects), filtering the file per host — link. lists the prod
+#   package only (mobile-app todos/0015 #22). _routes.json limits Functions to this path.
 # security.txt (RFC 9116) — same arrangement: stored at root, exposed at its canonical path.
 /.well-known/security.txt                 /security.txt                 200
 
